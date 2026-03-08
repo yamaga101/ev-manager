@@ -6,6 +6,7 @@ import { StartChargingForm } from "./components/charging/StartChargingForm.tsx";
 import { LiveChargingScreen } from "./components/charging/LiveChargingScreen.tsx";
 import { CompletionSummary } from "./components/charging/CompletionSummary.tsx";
 import { Onboarding } from "./components/onboarding/Onboarding.tsx";
+import { ReminderBanner } from "./components/ui/ReminderBanner.tsx";
 import { useChargingStore } from "./store/useChargingStore.ts";
 import { useSettingsStore } from "./store/useSettingsStore.ts";
 import { useToastStore } from "./store/useToastStore.ts";
@@ -17,7 +18,7 @@ import type { TabId, ChargingRecord } from "./types/index.ts";
 const HistoryList = lazy(() => import("./components/history/HistoryList.tsx").then((m) => ({ default: m.HistoryList })));
 const StatsDashboard = lazy(() => import("./components/stats/StatsDashboard.tsx").then((m) => ({ default: m.StatsDashboard })));
 const SettingsPanel = lazy(() => import("./components/settings/SettingsPanel.tsx").then((m) => ({ default: m.SettingsPanel })));
-const MaintenanceTab = lazy(() => import("./components/maintenance/MaintenanceTab.tsx").then((m) => ({ default: m.MaintenanceTab })));
+const VehicleTab = lazy(() => import("./components/vehicle/VehicleTab.tsx").then((m) => ({ default: m.VehicleTab })));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("charging");
@@ -93,10 +94,13 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md border-b border-border dark:border-dark-border px-4 py-3" role="banner">
         <div className="max-w-lg mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold tracking-tight">
-            EV<span className="text-ev-primary">Logger</span>
+            EV<span className="text-ev-primary">Manager</span>
           </h1>
         </div>
       </header>
+
+      {/* Reminder Banner */}
+      <ReminderBanner t={t} />
 
       {/* Main Content */}
       <main className="max-w-lg mx-auto px-4 py-4 pb-20" role="main">
@@ -116,8 +120,8 @@ export default function App() {
 
           <Suspense fallback={<div className="flex justify-center py-10"><div className="spinner" /></div>}>
             {activeTab === "history" && <HistoryList t={t} />}
+            {activeTab === "vehicle" && <VehicleTab t={t} />}
             {activeTab === "stats" && <StatsDashboard t={t} />}
-            {activeTab === "maintenance" && <MaintenanceTab t={t} />}
             {activeTab === "settings" && <SettingsPanel t={t} />}
           </Suspense>
         </ErrorBoundary>

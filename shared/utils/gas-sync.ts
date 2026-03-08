@@ -3,6 +3,9 @@ import type {
   GasPayload,
   MaintenanceRecord,
   InspectionRecord,
+  InsuranceRecord,
+  TaxRecord,
+  DriveLogRecord,
 } from "../types";
 
 export function buildGasPayload(record: ChargingRecord): GasPayload {
@@ -49,6 +52,50 @@ export function buildInspectionGasPayload(record: InspectionRecord): GasPayload 
     soh: String(record.soh ?? ""),
     nextDueDate: String(record.nextDueDate || ""),
     findings: String(record.findings || ""),
+  };
+}
+
+export function buildInsuranceGasPayload(record: InsuranceRecord): GasPayload {
+  return {
+    type: "insurance",
+    id: record.id,
+    provider: String(record.provider || ""),
+    policyNumber: String(record.policyNumber || ""),
+    insuranceType: String(record.type || ""),
+    coverageSummary: String(record.coverageSummary || ""),
+    premium: String(record.premium || ""),
+    startDate: String(record.startDate || ""),
+    endDate: String(record.endDate || ""),
+    memo: String(record.memo || ""),
+  };
+}
+
+export function buildTaxGasPayload(record: TaxRecord): GasPayload {
+  return {
+    type: "tax",
+    id: record.id,
+    taxType: String(record.taxType || ""),
+    amount: String(record.amount || ""),
+    dueDate: String(record.dueDate || ""),
+    paidDate: String(record.paidDate || ""),
+    fiscalYear: String(record.fiscalYear || ""),
+    memo: String(record.memo || ""),
+  };
+}
+
+export function buildDriveLogGasPayload(record: DriveLogRecord): GasPayload {
+  return {
+    type: "driveLog",
+    id: record.id,
+    date: String(record.date || ""),
+    departure: String(record.departure || ""),
+    destination: String(record.destination || ""),
+    distance: String(record.distance || ""),
+    startOdometer: String(record.startOdometer || ""),
+    endOdometer: String(record.endOdometer || ""),
+    efficiency: String(record.efficiency ?? ""),
+    purpose: String(record.purpose || ""),
+    memo: String(record.memo || ""),
   };
 }
 

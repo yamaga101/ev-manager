@@ -9,8 +9,12 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
+import { Star, MapPin } from "lucide-react";
 import { useChargingStore } from "../../store/useChargingStore.ts";
+import { useMaintenanceStore } from "../../store/useMaintenanceStore.ts";
+import { useVehicleStore } from "../../store/useVehicleStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { calcChargedKwh, calcCost } from "../../utils/calculations.ts";
 import {
@@ -27,6 +31,9 @@ type Period = "1M" | "3M" | "6M" | "ALL";
 
 export function StatsDashboard({ t }: StatsDashboardProps) {
   const history = useChargingStore((s) => s.history);
+  const maintenanceRecords = useMaintenanceStore((s) => s.maintenanceRecords);
+  const insuranceRecords = useVehicleStore((s) => s.insuranceRecords);
+  const taxRecords = useVehicleStore((s) => s.taxRecords);
   const settings = useSettingsStore((s) => s.settings);
   const [period, setPeriod] = useState<Period>("ALL");
 
@@ -97,19 +104,6 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
       }));
   }, [filteredHistory]);
 
-  // Location chart data
-  const locationData = useMemo(() => {
-    const locMap: Record<string, number> = {};
-    filteredHistory.forEach((h) => {
-      const name = h.locationName || "Unknown";
-      locMap[name] = (locMap[name] || 0) + 1;
-    });
-    return Object.entries(locMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, count]) => ({ name: name.slice(0, 10), count }));
-  }, [filteredHistory]);
-
   // Monthly cost data
   const monthlyCostData = useMemo(() => {
     const monthMap: Record<string, number> = {};
@@ -127,6 +121,133 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .slice(-6)
       .map(([month, cost]) => ({ month: month.slice(5), cost }));
+  }, [filteredHistory, capacity, rate]);
+
+  // Total cost trend: stacked bar chart by month (charging + maintenance + insurance + tax)
+  const totalCostTrendData = useMemo(() => {
+    // Determine date range from period filter
+    const cutoffDate = (() => {
+      if (period === "ALL") return null;
+      const months = { "1M": 1, "3M": 3, "6M": 6 }[period];
+      const d = new Date();
+      d.setMonth(d.getMonth() - months);
+      return d;
+    })();
+
+    const isInRange = (dateStr: string): boolean => {
+      if (!cutoffDate) return true;
+      return new Date(dateStr) >= cutoffDate;
+    };
+
+    const monthKey = (dateStr: string): string => {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+    };
+
+    const map: Record<
+      string,
+      { charging: number; maintenance: number; insurance: number; tax: number }
+    > = {};
+
+    const ensureKey = (key: string) => {
+      if (!map[key]) map[key] = { charging: 0, maintenance: 0, insurance: 0, tax: 0 };
+    };
+
+    // Charging cost
+    filteredHistory.forEach((h) => {
+      const dateStr = h.startTime || h.timestamp || "";
+      if (!dateStr) return;
+      const key = monthKey(dateStr);
+      ensureKey(key);
+      const kwh = calcChargedKwh(
+        capacity,
+        h.startBattery || 0,
+        h.endBattery || h.batteryAfter || 0,
+      );
+      map[key].charging += calcCost(kwh, rate);
+    });
+
+    // Maintenance cost
+    maintenanceRecords.forEach((r) => {
+      if (!r.date || !isInRange(r.date)) return;
+      const key = monthKey(r.date);
+      ensureKey(key);
+      map[key].maintenance += r.cost || 0;
+    });
+
+    // Insurance cost (spread premium evenly over months of coverage)
+    insuranceRecords.forEach((r) => {
+      if (!r.startDate) return;
+      const start = new Date(r.startDate);
+      const end = r.endDate ? new Date(r.endDate) : new Date(start.getFullYear() + 1, start.getMonth(), start.getDate());
+      const totalMonths = Math.max(
+        1,
+        (end.getFullYear() - start.getFullYear()) * 12 +
+          (end.getMonth() - start.getMonth()),
+      );
+      const monthlyPremium = (r.premium || 0) / totalMonths;
+
+      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+      while (cursor <= endMonth) {
+        const dateStr = cursor.toISOString();
+        if (isInRange(dateStr)) {
+          const key = `${cursor.getFullYear()}-${(cursor.getMonth() + 1).toString().padStart(2, "0")}`;
+          ensureKey(key);
+          map[key].insurance += monthlyPremium;
+        }
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+    });
+
+    // Tax cost (placed in the month of dueDate)
+    taxRecords.forEach((r) => {
+      if (!r.dueDate || !isInRange(r.dueDate)) return;
+      const key = monthKey(r.dueDate);
+      ensureKey(key);
+      map[key].tax += r.amount || 0;
+    });
+
+    return Object.entries(map)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-6)
+      .map(([month, costs]) => ({
+        month: month.slice(5),
+        charging: Math.round(costs.charging),
+        maintenance: Math.round(costs.maintenance),
+        insurance: Math.round(costs.insurance),
+        tax: Math.round(costs.tax),
+      }));
+  }, [filteredHistory, maintenanceRecords, insuranceRecords, taxRecords, period, capacity, rate]);
+
+  // Favorite spots: top 5 locations by usage with kWh and avg cost
+  const favoriteSpotsData = useMemo(() => {
+    const locMap: Record<
+      string,
+      { count: number; totalKwh: number; totalCost: number }
+    > = {};
+    filteredHistory.forEach((h) => {
+      const name = h.locationName || "Unknown";
+      if (!locMap[name]) locMap[name] = { count: 0, totalKwh: 0, totalCost: 0 };
+      const kwh = calcChargedKwh(
+        capacity,
+        h.startBattery || 0,
+        h.endBattery || h.batteryAfter || 0,
+      );
+      locMap[name].count++;
+      locMap[name].totalKwh += kwh;
+      locMap[name].totalCost += calcCost(kwh, rate);
+    });
+    return Object.entries(locMap)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
+      .map(([name, data], index) => ({
+        rank: index + 1,
+        name,
+        count: data.count,
+        totalKwh: parseFloat(data.totalKwh.toFixed(1)),
+        avgCost: data.count > 0 ? Math.round(data.totalCost / data.count) : 0,
+      }));
   }, [filteredHistory, capacity, rate]);
 
   // SOH trend data (only records that have soh field)
@@ -298,26 +419,43 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
             </div>
           )}
 
-          {/* Location Chart */}
-          {locationData.length > 0 && (
+          {/* Favorite Spots */}
+          {favoriteSpotsData.length > 0 && (
             <div className="mb-6">
               <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
-                {t.byLocation}
+                {t.favoriteSpots}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
-                <ResponsiveContainer width="100%" height={locationData.length * 30 + 20}>
-                  <BarChart data={locationData} layout="vertical">
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      width={80}
-                      tick={{ fontSize: 11 }}
-                    />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#0EA5E9" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col gap-2">
+                {favoriteSpotsData.map((spot) => (
+                  <div
+                    key={spot.name}
+                    className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border flex items-center gap-3"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                      {spot.rank === 1 ? (
+                        <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                      ) : (
+                        <MapPin size={16} className="text-text-muted" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-text-primary dark:text-dark-text truncate">
+                        {spot.name}
+                      </div>
+                      <div className="text-xs text-text-muted mt-0.5">
+                        {spot.totalKwh} kWh
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-sm font-semibold text-ev-primary">
+                        {spot.count} {t.timesUsed}
+                      </div>
+                      <div className="text-xs text-ev-success">
+                        avg ¥{spot.avgCost}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -336,6 +474,51 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => [`¥${Math.round(value)}`, t.cost]} />
                     <Bar dataKey="cost" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Total Cost Trend - Stacked bar chart */}
+          {totalCostTrendData.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+                {t.costTrend}
+              </h3>
+              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={totalCostTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value: number, name: string) => {
+                        const labelMap: Record<string, string> = {
+                          charging: t.chargingCost,
+                          maintenance: t.maintenanceCostLabel,
+                          insurance: t.insuranceCost,
+                          tax: t.taxCost,
+                        };
+                        return [`¥${Math.round(value)}`, labelMap[name] ?? name];
+                      }}
+                    />
+                    <Legend
+                      formatter={(value: string) => {
+                        const labelMap: Record<string, string> = {
+                          charging: t.chargingCost,
+                          maintenance: t.maintenanceCostLabel,
+                          insurance: t.insuranceCost,
+                          tax: t.taxCost,
+                        };
+                        return labelMap[value] ?? value;
+                      }}
+                      wrapperStyle={{ fontSize: 10 }}
+                    />
+                    <Bar dataKey="charging" stackId="a" fill="#10B981" />
+                    <Bar dataKey="maintenance" stackId="a" fill="#F97316" />
+                    <Bar dataKey="insurance" stackId="a" fill="#3B82F6" />
+                    <Bar dataKey="tax" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

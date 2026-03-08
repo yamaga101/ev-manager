@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base: "/ev-gravity-logger/",
+  base: "/ev-manager/",
   plugins: [
     react(),
     tailwindcss(),
@@ -12,12 +12,12 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icon.png"],
       manifest: {
-        name: "EV Gravity Logger",
-        short_name: "EV Logger",
+        name: "EV Manager",
+        short_name: "EV Manager",
         description:
-          "EV charging session logger with stats dashboard, live charging, CSV export & more",
-        start_url: "/ev-gravity-logger/",
-        scope: "/ev-gravity-logger/",
+          "Comprehensive EV management app: charging, maintenance, insurance, tax, drive log & stats",
+        start_url: "/ev-manager/",
+        scope: "/ev-manager/",
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#10B981",

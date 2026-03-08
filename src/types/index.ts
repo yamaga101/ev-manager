@@ -12,4 +12,11 @@ export type {
   MaintenanceCategory,
   MaintenanceRecord,
   InspectionRecord,
+  VehicleRegistration,
+  InsuranceRecord,
+  TaxRecord,
+  TaxType,
+  DriveLogRecord,
+  VehicleSubTab,
+  HistorySubTab,
 } from "../../shared/types/index.ts";

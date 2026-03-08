@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Download, Trash2, Edit2, MapPin, ArrowRight } from "lucide-react";
+import { Download, Trash2, Edit2, MapPin, ArrowRight, BatteryCharging, Navigation } from "lucide-react";
 import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
@@ -16,15 +16,17 @@ import {
   DEFAULT_BATTERY_CAPACITY,
   DEFAULT_ELECTRICITY_RATE,
 } from "../../constants/defaults.ts";
-import type { ChargingRecord } from "../../types/index.ts";
+import type { ChargingRecord, HistorySubTab } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 import { EditSessionModal } from "./EditSessionModal.tsx";
+import { DriveLogList } from "./DriveLogList.tsx";
 
 interface HistoryListProps {
   t: Translations;
 }
 
 export function HistoryList({ t }: HistoryListProps) {
+  const [historySubTab, setHistorySubTab] = useState<HistorySubTab>("charging");
   const history = useChargingStore((s) => s.history);
   const deleteRecord = useChargingStore((s) => s.deleteRecord);
   const deleteRecords = useChargingStore((s) => s.deleteRecords);
@@ -92,6 +94,34 @@ export function HistoryList({ t }: HistoryListProps) {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Sub-tab selector */}
+      <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1 mb-4">
+        <button
+          onClick={() => setHistorySubTab("charging")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            historySubTab === "charging"
+              ? "bg-white dark:bg-dark-surface text-ev-primary shadow-sm"
+              : "text-text-muted hover:text-text-primary dark:hover:text-dark-text"
+          }`}
+        >
+          <BatteryCharging size={14} />
+          {t.history}
+        </button>
+        <button
+          onClick={() => setHistorySubTab("driveLog")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            historySubTab === "driveLog"
+              ? "bg-white dark:bg-dark-surface text-ev-primary shadow-sm"
+              : "text-text-muted hover:text-text-primary dark:hover:text-dark-text"
+          }`}
+        >
+          <Navigation size={14} />
+          {t.driveLog}
+        </button>
+      </div>
+
+      {historySubTab === "driveLog" && <DriveLogList t={t} />}
+      {historySubTab === "charging" && <>
       {/* Toolbar */}
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2 items-center">
@@ -277,6 +307,7 @@ export function HistoryList({ t }: HistoryListProps) {
         onClose={() => setEditingItem(null)}
         t={t}
       />
+      </>}
     </div>
   );
 }

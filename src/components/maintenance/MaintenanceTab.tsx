@@ -9,6 +9,7 @@ import { AddInspectionForm } from "./AddInspectionForm.tsx";
 
 interface MaintenanceTabProps {
   t: Translations;
+  initialSubTab?: "maintenance" | "inspection";
 }
 
 type SubTab = "maintenance" | "inspection";
@@ -184,14 +185,14 @@ function InspectionCard({
   );
 }
 
-export function MaintenanceTab({ t }: MaintenanceTabProps) {
+export function MaintenanceTab({ t, initialSubTab }: MaintenanceTabProps) {
   const maintenanceRecords = useMaintenanceStore((s) => s.maintenanceRecords);
   const inspectionRecords = useMaintenanceStore((s) => s.inspectionRecords);
   const deleteMaintenance = useMaintenanceStore((s) => s.deleteMaintenance);
   const deleteInspection = useMaintenanceStore((s) => s.deleteInspection);
   const showToast = useToastStore((s) => s.showToast);
 
-  const [subTab, setSubTab] = useState<SubTab>("maintenance");
+  const [subTab, setSubTab] = useState<SubTab>(initialSubTab || "maintenance");
   const [showAddMaintenance, setShowAddMaintenance] = useState(false);
   const [showAddInspection, setShowAddInspection] = useState(false);
 

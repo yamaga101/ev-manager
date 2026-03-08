@@ -85,8 +85,6 @@ export interface InspectionGasPayload {
   findings: string;
 }
 
-export type GasPayload = ChargingGasPayload | MaintenanceGasPayload | InspectionGasPayload;
-
 export type MaintenanceCategory =
   | "tire"        // タイヤ
   | "brake"       // ブレーキ
@@ -122,9 +120,113 @@ export interface InspectionRecord {
   createdAt: string;
 }
 
+// --- Vehicle Registration ---
+export interface VehicleRegistration {
+  plateNumber: string;
+  vin: string;
+  model: string;
+  year: number;
+  color: string;
+  expiryDate: string; // vehicle inspection expiry (ISO date)
+  purchaseDate?: string;
+  memo?: string;
+}
+
+// --- Insurance ---
+export interface InsuranceRecord {
+  id: string;
+  provider: string;
+  policyNumber: string;
+  type: "mandatory" | "voluntary"; // jibaiseki / nin-i
+  coverageSummary: string;
+  premium: number;
+  startDate: string;
+  endDate: string;
+  referenceNumber?: string;
+  memo?: string;
+  createdAt: string;
+}
+
+export interface InsuranceGasPayload {
+  type: "insurance";
+  id: string;
+  provider: string;
+  policyNumber: string;
+  insuranceType: string;
+  coverageSummary: string;
+  premium: string;
+  startDate: string;
+  endDate: string;
+  memo: string;
+}
+
+// --- Tax ---
+export type TaxType = "automobile" | "weight" | "env" | "other";
+
+export interface TaxRecord {
+  id: string;
+  taxType: TaxType;
+  amount: number;
+  dueDate: string;
+  paidDate?: string;
+  fiscalYear: number;
+  memo?: string;
+  createdAt: string;
+}
+
+export interface TaxGasPayload {
+  type: "tax";
+  id: string;
+  taxType: string;
+  amount: string;
+  dueDate: string;
+  paidDate: string;
+  fiscalYear: string;
+  memo: string;
+}
+
+// --- Drive Log ---
+export interface DriveLogRecord {
+  id: string;
+  date: string;
+  departure: string;
+  destination: string;
+  distance: number;
+  startOdometer: number;
+  endOdometer: number;
+  efficiency?: number; // km/kWh
+  purpose?: string;
+  memo?: string;
+  createdAt: string;
+}
+
+export interface DriveLogGasPayload {
+  type: "driveLog";
+  id: string;
+  date: string;
+  departure: string;
+  destination: string;
+  distance: string;
+  startOdometer: string;
+  endOdometer: string;
+  efficiency: string;
+  purpose: string;
+  memo: string;
+}
+
+export type GasPayload =
+  | ChargingGasPayload
+  | MaintenanceGasPayload
+  | InspectionGasPayload
+  | InsuranceGasPayload
+  | TaxGasPayload
+  | DriveLogGasPayload;
+
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "ja";
-export type TabId = "charging" | "history" | "stats" | "settings" | "maintenance";
+export type TabId = "charging" | "history" | "vehicle" | "stats" | "settings";
+export type VehicleSubTab = "info" | "insurance" | "tax" | "maintenance" | "inspection";
+export type HistorySubTab = "charging" | "driveLog";
 
 export interface ChargeSpeedBadge {
   emoji: string;

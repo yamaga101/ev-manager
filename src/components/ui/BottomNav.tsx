@@ -3,7 +3,7 @@ import {
   History,
   BarChart3,
   Settings,
-  Wrench,
+  Car,
 } from "lucide-react";
 import type { TabId } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
@@ -17,8 +17,8 @@ interface BottomNavProps {
 const tabs: { id: TabId; icon: typeof BatteryCharging; labelKey: keyof Translations }[] = [
   { id: "charging", icon: BatteryCharging, labelKey: "startCharging" },
   { id: "history", icon: History, labelKey: "history" },
+  { id: "vehicle", icon: Car, labelKey: "vehicleTab" },
   { id: "stats", icon: BarChart3, labelKey: "statistics" },
-  { id: "maintenance", icon: Wrench, labelKey: "maintenance" },
   { id: "settings", icon: Settings, labelKey: "settings" },
 ];
 

@@ -1,10 +1,11 @@
-# ev-gravity-logger
+# ev-manager
 
 ## Session Identity
-**THIS SESSION IS FOR: ev-gravity-logger**
-Compact後もev-gravity-loggerの作業のみ継続すること。他プロジェクトの作業はしない。
+**THIS SESSION IS FOR: ev-manager**
+Compact後もev-managerの作業のみ継続すること。他プロジェクトの作業はしない。
 
 ## Quick Reference
-- EV充電ログPWA、v3.2.0
-- leaf-tracker吸収済み。深夜レート自動判定、SOHトラッキング、電費自動計算
-- メンテ・点検タブ追加。GAS sync対応
+- EV総合管理PWA、v4.0.0
+- 充電ログ、メンテナンス、点検、保険、税金、車検登録、ドライブログ
+- 統計: コスト推移グラフ、SOH推移グラフ、お気に入り充電スポット
+- GAS sync対応、リマインダー通知

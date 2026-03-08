@@ -1,5 +1,5 @@
 // Re-export shared functions
-export { buildGasPayload, buildMaintenanceGasPayload, buildInspectionGasPayload, sendToGas } from "../../shared/utils/gas-sync.ts";
+export { buildGasPayload, buildMaintenanceGasPayload, buildInspectionGasPayload, buildInsuranceGasPayload, buildTaxGasPayload, buildDriveLogGasPayload, sendToGas } from "../../shared/utils/gas-sync.ts";
 export { retryQueue as _retryQueueShared } from "../../shared/utils/gas-sync.ts";
 
 // Web-specific wrapper: automatically passes navigator.onLine
