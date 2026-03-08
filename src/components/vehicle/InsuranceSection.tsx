@@ -112,7 +112,7 @@ export function InsuranceSection({ t }: InsuranceSectionProps) {
       <div className="flex justify-between items-center mb-3">
         {records.length > 0 && (
           <span className="text-xs text-text-muted">
-            {t.totalMaintenanceCost}:{" "}
+            {t.totalInsuranceCost}:{" "}
             <span className="font-semibold text-ev-success">
               &yen;{totalPremium.toLocaleString()}
             </span>

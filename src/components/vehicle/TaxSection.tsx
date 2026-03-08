@@ -131,7 +131,7 @@ export function TaxSection({ t }: TaxSectionProps) {
       <div className="flex justify-between items-center mb-3">
         {records.length > 0 && (
           <span className="text-xs text-text-muted">
-            {t.totalMaintenanceCost}:{" "}
+            {t.totalTaxAmount}:{" "}
             <span className="font-semibold text-ev-success">
               &yen;{totalAmount.toLocaleString()}
             </span>

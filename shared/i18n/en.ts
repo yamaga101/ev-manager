@@ -246,6 +246,8 @@ export const en = {
   overdue: "Overdue",
   daysLeft: "days left",
   daysOverdue: "days overdue",
+  totalInsuranceCost: "Total Premium",
+  totalTaxAmount: "Total Tax",
 };
 
 export type TranslationKey = keyof typeof en;

@@ -1,5 +1,5 @@
 export const PRE_CONFIGURED_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwYb6Mi8KlOuSfYXeqBneVoNMw-pDjcTg0nuMERop7uNLb6GROtAZUi70xsyyMkNZqocA/exec";
+  "https://script.google.com/macros/s/AKfycbwtU2yzzRnHLkiI1ebAJ1bDCvq0K6_v7Yi94A1Xm13mEzq0KzGIHr512FzV1O53k0wcRA/exec";
 
 export const STORAGE_KEY_DATA = "ev_gravity_data_v1";
 export const STORAGE_KEY_SETTINGS = "ev_gravity_settings_v1";

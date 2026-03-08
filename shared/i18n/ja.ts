@@ -247,4 +247,6 @@ export const ja: TranslationMap = {
   overdue: "期限切れ",
   daysLeft: "日後",
   daysOverdue: "日超過",
+  totalInsuranceCost: "保険料合計",
+  totalTaxAmount: "税額合計",
 };

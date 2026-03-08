@@ -212,7 +212,7 @@ function ReminderItem({ reminder, t }: ReminderItemProps) {
         {isOverdue
           ? `${absDays} ${t.daysOverdue}`
           : reminder.daysFromNow === 0
-            ? t.overdue
+            ? t.upcoming
             : `${absDays} ${t.daysLeft}`}
       </span>
     </li>
