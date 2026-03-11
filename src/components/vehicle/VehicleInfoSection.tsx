@@ -35,7 +35,7 @@ export function VehicleInfoSection({ t }: VehicleInfoSectionProps) {
   };
 
   const inputClass =
-    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
+    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
 
   return (
     <div className="space-y-3">

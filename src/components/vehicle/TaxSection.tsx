@@ -70,17 +70,17 @@ function TaxCard({
             </span>
             <span className="text-xs text-text-muted">{record.fiscalYear}</span>
             {isPaid && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-green-100 text-green-600 flex items-center gap-0.5">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center gap-0.5">
                 <Check size={10} />{t.taxPaid}
               </span>
             )}
             {isOverdue && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 text-red-600">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
                 {t.overdue}
               </span>
             )}
             {isDueSoon && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400">
                 {daysLeft}{t.daysLeft}
               </span>
             )}
@@ -212,16 +212,16 @@ function AddTaxForm({ onClose, t }: { onClose: () => void; t: Translations }) {
   };
 
   const inputClass =
-    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
+    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
 
   const taxTypes: TaxType[] = ["automobile", "weight", "env", "other"];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-lg bg-white dark:bg-dark-surface rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-base font-bold">{t.addTax}</h3>
-          <button onClick={onClose} className="p-1">
+          <h3 className="text-base font-bold text-text-primary dark:text-dark-text">{t.addTax}</h3>
+          <button onClick={onClose} className="p-1 text-text-muted hover:text-text-primary dark:hover:text-dark-text">
             <X size={20} />
           </button>
         </div>

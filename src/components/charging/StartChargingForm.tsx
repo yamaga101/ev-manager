@@ -3,11 +3,14 @@ import { PlugZap, MapPin, ChevronDown, Moon } from "lucide-react";
 import { SmartNumberInput } from "../inputs/SmartNumberInput.tsx";
 import { DateTimeInput } from "../inputs/DateTimeInput.tsx";
 import { Odometer } from "../inputs/Odometer.tsx";
+import { MeterCaptureFlow } from "../meter-capture/MeterCaptureFlow.tsx";
 import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useLocationStore } from "../../store/useLocationStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
+import { useToastStore } from "../../store/useToastStore.ts";
 import { getAutoRate } from "../../utils/calculations.ts";
 import { generateId, getLocalISOString } from "../../utils/formatting.ts";
+import type { MeterExtractResult } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
 interface StartChargingFormProps {
@@ -19,6 +22,9 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
   const startSession = useChargingStore((s) => s.startSession);
   const locations = useLocationStore((s) => s.locations);
   const settings = useSettingsStore((s) => s.settings);
+
+  const showToast = useToastStore((s) => s.showToast);
+  const geminiApiKey = settings.geminiApiKey ?? "";
 
   const lastRecord = history[0];
   const [startTime, setStartTime] = useState(getLocalISOString());
@@ -54,6 +60,23 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
     [lastRecord],
   );
 
+  const [startRangeAcOn, setStartRangeAcOn] = useState<number | undefined>(undefined);
+  const [startSegmentCount, setStartSegmentCount] = useState<number | undefined>(undefined);
+
+  const handleMeterApply = useCallback(
+    (data: MeterExtractResult) => {
+      if (data.odometer != null) handleOdometerChange(data.odometer);
+      if (data.batteryPct != null) setStartBattery(data.batteryPct);
+      if (data.rangeKm != null) setStartRange(data.rangeKm);
+      if (data.efficiencyKmPerKwh != null) setEfficiency(data.efficiencyKmPerKwh);
+      if (data.rangeAcOnKm != null) setStartRangeAcOn(data.rangeAcOnKm);
+      if (data.segmentCount != null) setStartSegmentCount(data.segmentCount);
+      if (data.capturedAt) setStartTime(data.capturedAt);
+      showToast(t.meterApplied, "success");
+    },
+    [handleOdometerChange, showToast, t.meterApplied],
+  );
+
   const handleStart = () => {
     const loc = locations.find((l) => l.id === selectedLocationId);
     startSession({
@@ -68,14 +91,21 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
       voltage: loc?.voltage ?? "",
       amperage: loc?.amperage ?? "",
       kw: loc?.kw ?? "",
+      startRangeAcOn,
+      startSegmentCount,
     });
   };
 
   return (
     <div className="bg-white dark:bg-dark-surface rounded-2xl p-4 shadow-sm border border-border dark:border-dark-border">
-      <div className="flex items-center gap-2 mb-3 text-ev-primary">
-        <PlugZap size={20} />
-        <h2 className="text-lg font-semibold">{t.startCharging}</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-ev-primary">
+          <PlugZap size={20} />
+          <h2 className="text-lg font-semibold">{t.startCharging}</h2>
+        </div>
+        {geminiApiKey && (
+          <MeterCaptureFlow apiKey={geminiApiKey} t={t} onApply={handleMeterApply} />
+        )}
       </div>
 
       <DateTimeInput label={t.startTime} value={startTime} onChange={setStartTime} />

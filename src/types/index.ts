@@ -19,4 +19,6 @@ export type {
   DriveLogRecord,
   VehicleSubTab,
   HistorySubTab,
+  MeterExtractResult,
+  ConfidenceLevel,
 } from "../../shared/types/index.ts";

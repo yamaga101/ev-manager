@@ -249,4 +249,19 @@ export const ja: TranslationMap = {
   daysOverdue: "日超過",
   totalInsuranceCost: "保険料合計",
   totalTaxAmount: "税額合計",
+
+  // Meter Capture
+  meterCapture: "メーター読取",
+  meterProcessing: "メーターパネルを読み取り中...",
+  meterResults: "読み取り結果",
+  meterApply: "反映する",
+  meterApplied: "メーター値を反映しました",
+  meterRetry: "再撮影",
+  meterError: "読み取り失敗",
+  geminiApiKey: "Gemini API キー",
+  geminiApiKeyHint: "メーター写真読取用（無料枠あり）",
+  rangeAcOn: "航続距離 AC ON",
+  rangeAcOff: "航続距離 AC OFF",
+  segmentCount: "バッテリーセグメント",
+  sohEstimate: "SOH推定",
 };

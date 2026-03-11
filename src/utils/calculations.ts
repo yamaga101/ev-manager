@@ -6,4 +6,5 @@ export {
   calcChargeSpeed,
   getChargeSpeedBadge,
   getAutoRate,
+  segmentCountToSoh,
 } from "../../shared/utils/calculations.ts";

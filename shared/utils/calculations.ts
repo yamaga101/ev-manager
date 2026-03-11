@@ -45,3 +45,13 @@ export function getChargeSpeedBadge(kw: number): ChargeSpeedBadge {
   if (kw >= 3) return { emoji: "\u{1F7E1}", label: "Normal", color: "#F59E0B" };
   return { emoji: "\u{1F7E2}", label: "Slow", color: "#22C55E" };
 }
+
+const LEAF_SEGMENT_SOH: Record<number, number> = {
+  12: 100, 11: 85, 10: 79, 9: 72, 8: 66,
+  7: 60, 6: 54, 5: 47, 4: 41, 3: 35,
+  2: 29, 1: 22, 0: 0,
+};
+
+export function segmentCountToSoh(segments: number): number {
+  return LEAF_SEGMENT_SOH[Math.round(segments)] ?? Math.round((segments / 12) * 100);
+}

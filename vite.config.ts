@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["icon.png"],
+      includeAssets: ["icon.png", "icon-192.png", "apple-touch-icon.png"],
       manifest: {
         name: "EV Manager",
         short_name: "EV Manager",
@@ -22,6 +22,12 @@ export default defineConfig({
         background_color: "#ffffff",
         theme_color: "#10B981",
         icons: [
+          {
+            src: "icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
           {
             src: "icon.png",
             sizes: "512x512",

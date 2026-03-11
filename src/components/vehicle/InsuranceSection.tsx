@@ -50,12 +50,12 @@ function InsuranceCard({
               {typeLabel}
             </span>
             {isExpired && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 text-red-600">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
                 {t.overdue}
               </span>
             )}
             {isExpiringSoon && !isExpired && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400">
                 {daysLeft}{t.daysLeft}
               </span>
             )}

@@ -248,6 +248,21 @@ export const en = {
   daysOverdue: "days overdue",
   totalInsuranceCost: "Total Premium",
   totalTaxAmount: "Total Tax",
+
+  // Meter Capture
+  meterCapture: "Scan Meter",
+  meterProcessing: "Reading meter panel...",
+  meterResults: "Scan Results",
+  meterApply: "Apply",
+  meterApplied: "Meter values applied",
+  meterRetry: "Retry",
+  meterError: "Scan failed",
+  geminiApiKey: "Gemini API Key",
+  geminiApiKeyHint: "For meter photo scan (free tier available)",
+  rangeAcOn: "Range AC ON",
+  rangeAcOff: "Range AC OFF",
+  segmentCount: "Battery Segments",
+  sohEstimate: "SOH est.",
 };
 
 export type TranslationKey = keyof typeof en;

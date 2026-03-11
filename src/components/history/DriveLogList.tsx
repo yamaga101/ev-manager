@@ -178,14 +178,14 @@ function AddDriveLogForm({
   };
 
   const inputClass =
-    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
+    "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-ev-primary/50";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-lg bg-white dark:bg-dark-surface rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-base font-bold">{t.addDriveLog}</h3>
-          <button onClick={onClose} className="p-1">
+          <h3 className="text-base font-bold text-text-primary dark:text-dark-text">{t.addDriveLog}</h3>
+          <button onClick={onClose} className="p-1 text-text-muted hover:text-text-primary dark:hover:text-dark-text">
             <X size={20} />
           </button>
         </div>

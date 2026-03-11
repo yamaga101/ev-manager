@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { VehicleSettings, Language, Theme } from "../types/index.ts";
 import {
   PRE_CONFIGURED_GAS_URL,
+  DEFAULT_GEMINI_API_KEY,
   DEFAULT_BATTERY_CAPACITY,
   DEFAULT_ELECTRICITY_RATE,
   DEFAULT_NIGHT_RATE,
@@ -36,6 +37,7 @@ export const useSettingsStore = create<SettingsState>()(
         nightRate: DEFAULT_NIGHT_RATE,
         useNightRate: false,
         gasUrl: PRE_CONFIGURED_GAS_URL,
+        geminiApiKey: DEFAULT_GEMINI_API_KEY,
       },
       lang: "en",
       theme: "system",
@@ -89,6 +91,7 @@ export const useSettingsStore = create<SettingsState>()(
               nightRate: legacySettings.nightRate || DEFAULT_NIGHT_RATE,
               useNightRate: legacySettings.useNightRate || false,
               gasUrl: legacySettings.gasUrl || PRE_CONFIGURED_GAS_URL,
+              geminiApiKey: DEFAULT_GEMINI_API_KEY,
             },
             lang: (legacyLang as Language) || "en",
             theme: "system" as Theme,

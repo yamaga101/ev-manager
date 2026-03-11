@@ -3,6 +3,7 @@ import {
   Car,
   MapPin,
   Cloud,
+  Camera,
   WifiOff,
   Trash2,
   Edit2,
@@ -18,7 +19,7 @@ import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useLocationStore } from "../../store/useLocationStore.ts";
 import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
-import { VEHICLE_PRESETS } from "../../constants/defaults.ts";
+import { VEHICLE_PRESETS, SPREADSHEET_URL, APP_VERSION } from "../../constants/defaults.ts";
 import { exportJson, importJson } from "../../utils/json-io.ts";
 import type { ChargingLocation, Theme } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
@@ -319,6 +320,21 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
         </div>
       </section>
 
+      {/* Gemini API Key */}
+      <section>
+        <label className="text-sm font-semibold text-text-primary dark:text-dark-text mb-2 flex items-center gap-2">
+          <Camera size={16} /> {t.geminiApiKey}
+        </label>
+        <input
+          type="password"
+          value={settings.geminiApiKey ?? ""}
+          onChange={(e) => updateSettings({ geminiApiKey: e.target.value || undefined })}
+          placeholder="AIza..."
+          className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+        />
+        <p className="text-xs text-text-muted mt-1 pl-1">{t.geminiApiKeyHint}</p>
+      </section>
+
       {/* GAS URL */}
       <section>
         <label className="text-sm font-semibold text-text-primary dark:text-dark-text mb-2 flex items-center gap-2">
@@ -332,7 +348,7 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
           className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
         />
         <a
-          href="https://docs.google.com/spreadsheets/d/1Cvn4oUoN7lsd5VW0MufgwSwrdNC-LE9VbPwZ2eG0cvA"
+          href={SPREADSHEET_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 flex items-center justify-center gap-2 py-2 rounded-xl border border-ev-primary/50 text-ev-primary text-sm font-medium hover:bg-ev-primary/5 transition-colors"
@@ -405,6 +421,11 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
           <p className="text-xs text-text-muted mt-1">{t.autoSendOnline}</p>
         </section>
       )}
+
+      {/* Version */}
+      <div className="text-center text-xs text-text-muted pt-2">
+        EV Manager v{APP_VERSION}
+      </div>
     </div>
   );
 }

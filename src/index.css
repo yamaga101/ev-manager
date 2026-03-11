@@ -39,7 +39,15 @@ body {
 .dark {
   background-color: var(--color-dark-bg);
   color: var(--color-dark-text);
+  --color-text-muted: #94A3B8;
 }
+
+/* Enhanced glow animation in dark mode */
+@keyframes pulse-glow-dark {
+  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 50px rgba(16, 185, 129, 0.5), 0 0 80px rgba(16, 185, 129, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.2); }
+}
+.dark .pulse-glow { animation: pulse-glow-dark 2s ease-in-out infinite; }
 
 /* Custom scrollbar */
 .custom-scroll::-webkit-scrollbar {

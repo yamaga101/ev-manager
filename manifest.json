@@ -1,7 +1,7 @@
 {
   "name": "EV Manager",
   "short_name": "EV Manager",
-  "version": "4.0.0",
+  "version": "4.2.0",
   "description": "Comprehensive EV management app: charging, maintenance, insurance, tax, drive log & stats",
   "start_url": "/ev-manager/",
   "scope": "/ev-manager/",

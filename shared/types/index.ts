@@ -18,6 +18,8 @@ export interface ChargingSession {
   voltage: number | string;
   amperage: number | string;
   kw: number | string;
+  startRangeAcOn?: number;
+  startSegmentCount?: number;
 }
 
 export interface ChargingRecord extends ChargingSession {
@@ -42,6 +44,27 @@ export interface VehicleSettings {
   nightRate: number;
   useNightRate: boolean;
   gasUrl: string;
+  geminiApiKey?: string;
+}
+
+export type ConfidenceLevel = "high" | "low" | "not_visible";
+
+export interface MeterExtractResult {
+  odometer: number | null;
+  batteryPct: number | null;
+  rangeKm: number | null;
+  rangeAcOnKm: number | null;
+  efficiencyKmPerKwh: number | null;
+  segmentCount: number | null;
+  capturedAt: string;
+  confidence: {
+    odometer: ConfidenceLevel;
+    batteryPct: ConfidenceLevel;
+    rangeKm: ConfidenceLevel;
+    rangeAcOnKm: ConfidenceLevel;
+    efficiencyKmPerKwh: ConfidenceLevel;
+    segmentCount: ConfidenceLevel;
+  };
 }
 
 export interface ChargingGasPayload {

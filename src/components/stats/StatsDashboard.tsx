@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -23,6 +23,20 @@ import {
 } from "../../constants/defaults.ts";
 import type { Translations } from "../../i18n/index.ts";
 
+function useIsDark() {
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark"),
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setIsDark(document.documentElement.classList.contains("dark")),
+    );
+    obs.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return isDark;
+}
+
 interface StatsDashboardProps {
   t: Translations;
 }
@@ -36,6 +50,19 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
   const taxRecords = useVehicleStore((s) => s.taxRecords);
   const settings = useSettingsStore((s) => s.settings);
   const [period, setPeriod] = useState<Period>("ALL");
+  const isDark = useIsDark();
+
+  const chartColors = useMemo(
+    () => ({
+      grid: isDark ? "#334155" : "#E2E8F0",
+      tick: isDark ? "#94A3B8" : "#64748B",
+      tooltipStyle: isDark
+        ? { backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F1F5F9", borderRadius: "0.5rem", fontSize: "12px" }
+        : { borderRadius: "0.5rem", fontSize: "12px" },
+      legendStyle: isDark ? { color: "#94A3B8", fontSize: 10 } : { fontSize: 10 },
+    }),
+    [isDark],
+  );
 
   const capacity = settings.batteryCapacity || DEFAULT_BATTERY_CAPACITY;
   const rate = settings.electricityRate || DEFAULT_ELECTRICITY_RATE;
@@ -349,10 +376,10 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
               <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <Tooltip contentStyle={chartColors.tooltipStyle} />
                     <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -369,13 +396,13 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
               <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={efficiencyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="index" tick={{ fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="index" tick={{ fontSize: 11, fill: chartColors.tick }} />
                     <YAxis
                       domain={["dataMin - 0.5", "dataMax + 0.5"]}
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 11, fill: chartColors.tick }}
                     />
-                    <Tooltip />
+                    <Tooltip contentStyle={chartColors.tooltipStyle} />
                     <Line
                       type="monotone"
                       dataKey="efficiency"
@@ -398,14 +425,14 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
               <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={sohData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="index" tick={{ fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="index" tick={{ fontSize: 11, fill: chartColors.tick }} />
                     <YAxis
                       domain={["dataMin - 2", "dataMax + 2"]}
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 11, fill: chartColors.tick }}
                       unit="%"
                     />
-                    <Tooltip formatter={(value: number) => [`${value}%`, "SOH"]} />
+                    <Tooltip contentStyle={chartColors.tooltipStyle} formatter={(value: number) => [`${value}%`, "SOH"]} />
                     <Line
                       type="monotone"
                       dataKey="soh"
@@ -469,10 +496,10 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
               <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={monthlyCostData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(value: number) => [`¥${Math.round(value)}`, t.cost]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <YAxis tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <Tooltip contentStyle={chartColors.tooltipStyle} formatter={(value: number) => [`¥${Math.round(value)}`, t.cost]} />
                     <Bar dataKey="cost" fill="#F59E0B" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -489,10 +516,11 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
               <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={totalCostTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <YAxis tick={{ fontSize: 11, fill: chartColors.tick }} />
                     <Tooltip
+                      contentStyle={chartColors.tooltipStyle}
                       formatter={(value: number, name: string) => {
                         const labelMap: Record<string, string> = {
                           charging: t.chargingCost,
@@ -513,7 +541,7 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
                         };
                         return labelMap[value] ?? value;
                       }}
-                      wrapperStyle={{ fontSize: 10 }}
+                      wrapperStyle={chartColors.legendStyle}
                     />
                     <Bar dataKey="charging" stackId="a" fill="#10B981" />
                     <Bar dataKey="maintenance" stackId="a" fill="#F97316" />

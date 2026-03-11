@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { ExternalLink } from "lucide-react";
 import { BottomNav } from "./components/ui/BottomNav.tsx";
 import { ToastContainer } from "./components/ui/Toast.tsx";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary.tsx";
+import { SPREADSHEET_URL } from "./constants/defaults.ts";
 import { StartChargingForm } from "./components/charging/StartChargingForm.tsx";
 import { LiveChargingScreen } from "./components/charging/LiveChargingScreen.tsx";
 import { CompletionSummary } from "./components/charging/CompletionSummary.tsx";
@@ -96,6 +98,15 @@ export default function App() {
           <h1 className="text-xl font-bold tracking-tight">
             EV<span className="text-ev-primary">Manager</span>
           </h1>
+          <a
+            href={SPREADSHEET_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs text-ev-primary hover:bg-ev-primary/10 transition-colors"
+            aria-label={t.openSpreadsheet}
+          >
+            <ExternalLink size={16} strokeWidth={2.5} />
+          </a>
         </div>
       </header>
 
