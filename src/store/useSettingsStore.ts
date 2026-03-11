@@ -70,8 +70,8 @@ export const useSettingsStore = create<SettingsState>()(
         onboardingDone: state.onboardingDone,
       }),
       migrate: (_persisted, version) => {
+        const state = _persisted as Record<string, unknown>;
         if (version === 0) {
-          // Check for legacy data on first load
           const legacyOnboarding = localStorage.getItem(STORAGE_KEY_ONBOARDING);
           const legacyLang = localStorage.getItem(STORAGE_KEY_LANG);
           let legacySettings: Partial<VehicleSettings> = {};
@@ -98,9 +98,19 @@ export const useSettingsStore = create<SettingsState>()(
             onboardingDone: legacyOnboarding === "true",
           };
         }
+        if (version === 1) {
+          const settings = (state.settings ?? {}) as Record<string, unknown>;
+          return {
+            ...state,
+            settings: {
+              ...settings,
+              geminiApiKey: settings.geminiApiKey || DEFAULT_GEMINI_API_KEY,
+            },
+          };
+        }
         return _persisted;
       },
-      version: 1,
+      version: 2,
     },
   ),
 );
