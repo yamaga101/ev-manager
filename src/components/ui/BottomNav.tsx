@@ -42,20 +42,28 @@ export function BottomNav({ activeTab, onTabChange, t }: BottomNavProps) {
                 className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${
                   isActive
                     ? "text-nexus-cyan"
-                    : "text-text-dim hover:text-text-mid"
+                    : "text-text-dim/50 hover:text-text-mid"
                 }`}
               >
-                {/* Active glow indicator */}
+                {/* Active energy pillar */}
                 {isActive && (
-                  <div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-nexus-cyan glow-breathe"
-                    style={{ boxShadow: "0 0 8px rgba(0, 240, 255, 0.5)" }}
-                  />
+                  <>
+                    <div
+                      className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-full bg-nexus-cyan"
+                      style={{ boxShadow: "0 0 12px rgba(0, 240, 255, 0.6), 0 0 30px rgba(0, 240, 255, 0.2)" }}
+                    />
+                    <div
+                      className="absolute inset-0 rounded-lg transition-all duration-300"
+                      style={{
+                        background: "linear-gradient(180deg, rgba(0, 240, 255, 0.08) 0%, transparent 80%)",
+                      }}
+                    />
+                  </>
                 )}
                 <Icon
                   size={20}
                   strokeWidth={isActive ? 2.5 : 1.5}
-                  className={isActive ? "drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]" : ""}
+                  className={`transition-transform duration-300 ${isActive ? "drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] -translate-y-0.5" : ""}`}
                 />
                 <span className="text-[9px] mt-0.5 font-medium tracking-wider uppercase">
                   {t[labelKey]}

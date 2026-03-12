@@ -97,7 +97,7 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
   };
 
   return (
-    <div className="glass-panel hud-corners scan-lines p-4 slide-up">
+    <div className="glass-panel glass-noise hud-corners scan-lines scan-sweep p-4 slide-up">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 text-nexus-cyan">
           <PlugZap size={18} className="drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]" />

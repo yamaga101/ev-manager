@@ -25,6 +25,7 @@ import {
   MAX_CHARGE_HOURS,
 } from "../../constants/defaults.ts";
 import type { Translations } from "../../i18n/index.ts";
+import { useScramble } from "../../hooks/useScramble.ts";
 import type { ChargingRecord } from "../../types/index.ts";
 
 interface LiveChargingScreenProps {
@@ -76,6 +77,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
   );
   const elapsedKwh = locationKw * (elapsed / 3600);
   const liveCost = Math.round(elapsedKwh * rate);
+  const scrambledCost = useScramble(liveCost);
   const currentPct = Math.min(
     100,
     session.startBattery + (elapsedKwh / capacity) * 100,
@@ -163,7 +165,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
   };
 
   return (
-    <div className="charging-pulse glass-panel hud-corners scan-lines p-4 slide-up">
+    <div className="charging-pulse glass-panel glass-noise hud-corners scan-lines prismatic-border scan-sweep p-4 slide-up">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2 text-nexus-green">
           <BatteryCharging size={18} className="drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" />
@@ -181,27 +183,31 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
 
       {/* Progress Ring + Timer */}
       <div className="relative flex items-center justify-center mb-4">
-        <ProgressRing radius={70} stroke={6} progress={progress} />
+        <ProgressRing radius={80} stroke={6} progress={progress} />
         <div className="absolute text-center">
-          <div className="text-3xl font-mono-data font-bold text-nexus-cyan data-flicker" style={{ textShadow: "0 0 20px rgba(0, 240, 255, 0.4)" }}>
+          <div className="text-3xl font-mono-data font-bold text-nexus-cyan data-flicker" style={{ textShadow: `0 0 ${10 + progress * 0.3}px rgba(0, 240, 255, ${0.3 + progress * 0.005}), 0 0 ${30 + progress * 0.5}px rgba(0, 240, 255, ${0.1 + progress * 0.002})` }}>
             {formatTimer(elapsed)}
           </div>
-          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.elapsed}</div>
+          <div className="text-[8px] text-text-dim tracking-widest uppercase mt-1">{t.elapsed}</div>
+          <div className="text-[10px] font-mono-data text-nexus-cyan/50 mt-0.5">{Math.round(currentPct)}%</div>
         </div>
       </div>
 
       {/* Live Stats Row */}
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="rounded-lg p-2 text-center bg-nexus-cyan-glow border border-border-subtle">
-          <div className="text-[9px] text-text-dim tracking-wider uppercase">{t.estPct}</div>
-          <div className="text-xl font-mono-data font-bold text-nexus-cyan">
+        <div className="rounded-lg p-2 text-center bg-nexus-cyan-glow border border-border-subtle relative overflow-hidden">
+          <div className="text-[7px] text-nexus-cyan/30 tracking-widest font-mono absolute top-1 left-2">BATT_EST</div>
+          <div className="text-[9px] text-text-dim tracking-wider uppercase mt-2">{t.estPct}</div>
+          <div className="text-xl font-mono-data font-bold text-nexus-cyan" style={{ textShadow: "0 0 10px rgba(0, 240, 255, 0.3)" }}>
             {Math.round(currentPct)}%
           </div>
+          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4) ${currentPct}%, transparent ${currentPct}%)` }} />
         </div>
-        <div className="rounded-lg p-2 text-center bg-nexus-green-glow border border-border-subtle">
-          <div className="text-[9px] text-text-dim tracking-wider uppercase">{t.cost}</div>
-          <div className="text-xl font-mono-data font-bold text-nexus-green">
-            &yen;{liveCost}
+        <div className="rounded-lg p-2 text-center bg-nexus-green-glow border border-border-subtle relative overflow-hidden">
+          <div className="text-[7px] text-nexus-green/30 tracking-widest font-mono absolute top-1 left-2">COST_NOW</div>
+          <div className="text-[9px] text-text-dim tracking-wider uppercase mt-2">{t.cost}</div>
+          <div className="text-xl font-mono-data font-bold text-nexus-green" style={{ textShadow: "0 0 10px rgba(57, 255, 20, 0.3)" }}>
+            &yen;{scrambledCost}
           </div>
         </div>
         <div className="rounded-lg p-2 text-center bg-nexus-violet-glow border border-border-subtle">

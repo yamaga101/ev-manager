@@ -97,12 +97,12 @@ body {
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 70%);
-  animation: grid-drift 20s linear infinite;
+    linear-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.06) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%);
+  animation: grid-drift 25s linear infinite;
 }
 
 @keyframes grid-drift {
@@ -128,9 +128,11 @@ body {
   position: fixed;
   bottom: -10%;
   right: -10%;
-  width: 40%;
-  height: 40%;
-  background: radial-gradient(circle, rgba(123, 97, 255, 0.05) 0%, transparent 60%);
+  width: 45%;
+  height: 45%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(123, 97, 255, 0.06) 0%, transparent 55%),
+    radial-gradient(circle at 70% 80%, rgba(57, 255, 20, 0.03) 0%, transparent 50%);
   animation: orb-float 15s ease-in-out infinite alternate-reverse;
   pointer-events: none;
 }
@@ -171,6 +173,22 @@ body {
   mask-composite: exclude;
   -webkit-mask-composite: xor;
   pointer-events: none;
+}
+
+/* Noise texture for glass authenticity */
+.glass-noise {
+  position: relative;
+}
+.glass-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.025;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  z-index: 1;
 }
 
 /* === HUD Corners === */
@@ -225,7 +243,8 @@ body {
 
 /* Primary action button */
 .btn-plasma {
-  background: linear-gradient(135deg, #00F0FF, #7B61FF);
+  background: linear-gradient(var(--plasma-angle, 135deg), #00F0FF, #7B61FF);
+  animation: plasma-shift 8s ease-in-out infinite;
   color: #030712;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -269,8 +288,22 @@ body {
 
 /* === Animations === */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.15), 0 0 0 1px rgba(0, 240, 255, 0.1); }
-  50% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.3), 0 0 80px rgba(0, 240, 255, 0.1), 0 0 0 1px rgba(0, 240, 255, 0.2); }
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(0, 240, 255, 0.2),
+      0 0 25px rgba(0, 240, 255, 0.1),
+      0 0 60px rgba(0, 240, 255, 0.04),
+      0 0 120px rgba(123, 97, 255, 0.02),
+      inset 0 0 15px rgba(0, 240, 255, 0.03);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(0, 240, 255, 0.35),
+      0 0 40px rgba(0, 240, 255, 0.2),
+      0 0 80px rgba(0, 240, 255, 0.08),
+      0 0 160px rgba(123, 97, 255, 0.04),
+      inset 0 0 25px rgba(0, 240, 255, 0.05);
+  }
 }
 .pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
@@ -281,10 +314,28 @@ body {
 .dark .pulse-glow { animation: pulse-glow-dark 2.5s ease-in-out infinite; }
 
 @keyframes charging-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.15), 0 0 0 1px rgba(57, 255, 20, 0.1); }
-  50% { box-shadow: 0 0 50px rgba(57, 255, 20, 0.35), 0 0 80px rgba(57, 255, 20, 0.15), 0 0 0 1px rgba(57, 255, 20, 0.25); }
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(57, 255, 20, 0.4),
+      0 0 20px rgba(57, 255, 20, 0.2),
+      0 0 50px rgba(57, 255, 20, 0.08),
+      0 0 100px rgba(57, 255, 20, 0.03),
+      0 0 180px rgba(123, 97, 255, 0.02),
+      inset 0 1px 0 rgba(57, 255, 20, 0.15),
+      inset 0 0 20px rgba(57, 255, 20, 0.02);
+  }
+  50% {
+    box-shadow:
+      0 0 12px rgba(57, 255, 20, 0.6),
+      0 0 35px rgba(57, 255, 20, 0.35),
+      0 0 80px rgba(57, 255, 20, 0.15),
+      0 0 160px rgba(57, 255, 20, 0.06),
+      0 0 280px rgba(123, 97, 255, 0.04),
+      inset 0 1px 0 rgba(57, 255, 20, 0.3),
+      inset 0 0 30px rgba(57, 255, 20, 0.05);
+  }
 }
-.charging-pulse { animation: charging-pulse 2s ease-in-out infinite; }
+.charging-pulse { animation: charging-pulse 2.5s ease-in-out infinite; }
 
 @keyframes glow-breathe {
   0%, 100% { opacity: 0.4; }
@@ -307,6 +358,10 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 .slide-up { animation: slide-up 0.4s ease-out forwards; }
+
+@keyframes fade-in {
+  to { opacity: 1; }
+}
 
 @keyframes toast-in {
   from { transform: translateY(100px); opacity: 0; }
@@ -352,6 +407,105 @@ body {
 @keyframes particle-burst {
   0% { transform: translate(0,0) scale(1); opacity: 1; }
   100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+}
+
+/* Chromatic aberration glitch — title only */
+@keyframes chroma-glitch {
+  0%, 94%, 96.5%, 100% {
+    text-shadow:
+      0 0 12px rgba(0, 240, 255, 0.3),
+      0 0 30px rgba(123, 97, 255, 0.15);
+  }
+  95%, 96% {
+    text-shadow:
+      -2px 0 rgba(255, 0, 80, 0.4),
+      2px 0 rgba(0, 240, 255, 0.4),
+      0 0 20px rgba(0, 240, 255, 0.5);
+  }
+}
+.chroma-glitch { animation: chroma-glitch 8s ease-in-out infinite; }
+
+/* Prismatic conic border — charging panel only */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.prismatic-border {
+  position: relative;
+}
+
+.prismatic-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(0, 240, 255, 0.6),
+    rgba(123, 97, 255, 0.5),
+    rgba(57, 255, 20, 0.3),
+    rgba(255, 184, 0, 0.2),
+    rgba(0, 240, 255, 0.6)
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  animation: border-spin 6s linear infinite;
+}
+
+@keyframes border-spin {
+  to { --border-angle: 360deg; }
+}
+
+/* Plasma button gradient rotation */
+@property --plasma-angle {
+  syntax: "<angle>";
+  initial-value: 135deg;
+  inherits: false;
+}
+
+@keyframes plasma-shift {
+  0% { --plasma-angle: 135deg; }
+  50% { --plasma-angle: 225deg; }
+  100% { --plasma-angle: 135deg; }
+}
+
+/* Scan sweep — periodic light bar */
+@keyframes scan-sweep {
+  0%, 85% { transform: translateX(-100%); opacity: 0; }
+  90% { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0; }
+}
+
+.scan-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.scan-sweep::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.06), transparent);
+  animation: scan-sweep 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Vignette — edges fade to deep black */
+.vignette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%,
+    transparent 40%, rgba(3, 7, 18, 0.65) 100%);
 }
 
 /* === Custom Scrollbar === */
@@ -433,4 +587,8 @@ option {
   .nexus-grid-bg::after {
     animation: none !important;
   }
+  .chroma-glitch { animation: none !important; }
+  .prismatic-border::before { animation: none !important; }
+  .btn-plasma { animation: none !important; }
+  .scan-sweep::after { animation: none !important; }
 }

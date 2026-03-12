@@ -10,6 +10,7 @@ import { LiveChargingScreen } from "./components/charging/LiveChargingScreen.tsx
 import { CompletionSummary } from "./components/charging/CompletionSummary.tsx";
 import { Onboarding } from "./components/onboarding/Onboarding.tsx";
 import { ReminderBanner } from "./components/ui/ReminderBanner.tsx";
+import { Starfield } from "./components/ui/Starfield.tsx";
 import { useChargingStore } from "./store/useChargingStore.ts";
 import { useSettingsStore } from "./store/useSettingsStore.ts";
 import { useToastStore } from "./store/useToastStore.ts";
@@ -110,8 +111,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-space-void text-text-bright relative">
-      {/* Animated Grid Background */}
+      {/* Deep Space Background Layers */}
+      <Starfield />
       <div className="nexus-grid-bg" aria-hidden="true" />
+      <div className="vignette-overlay" aria-hidden="true" />
 
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-border-glow px-4 py-3" role="banner" style={{ background: "linear-gradient(180deg, rgba(0, 240, 255, 0.03) 0%, rgba(10, 15, 30, 0.95) 100%)" }}>
@@ -119,13 +122,21 @@ export default function App() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-nexus-cyan glow-breathe" style={{ boxShadow: "0 0 8px rgba(0, 240, 255, 0.6)" }} />
-              <h1 className="font-display text-base font-bold tracking-widest" style={{ background: "linear-gradient(90deg, #00F0FF, #7B61FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 0 12px rgba(0, 240, 255, 0.3))" }}>
+              <h1 className="font-display text-base font-bold tracking-widest chroma-glitch" style={{ background: "linear-gradient(90deg, #00F0FF, #7B61FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 EV CHARGE LOG
               </h1>
             </div>
-            <span className="font-mono text-[9px] text-nexus-cyan/40 tracking-wider border border-nexus-cyan/20 px-1.5 py-0.5 rounded">
-              v{APP_VERSION}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[9px] text-nexus-cyan/40 tracking-wider border border-nexus-cyan/20 px-1.5 py-0.5 rounded">
+                v{APP_VERSION}
+              </span>
+              {activeSession && (
+                <span className="font-mono text-[8px] text-nexus-green tracking-widest uppercase glow-breathe flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-nexus-green" style={{ boxShadow: "0 0 6px rgba(57, 255, 20, 0.6)" }} />
+                  CHARGING
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-nexus-cyan/60 tracking-widest tabular-nums">
@@ -155,7 +166,29 @@ export default function App() {
             </a>
           </div>
         </div>
+        {/* Header glow separator */}
+        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.3), transparent)" }} />
       </header>
+
+      {/* System Status Bar */}
+      <div className="max-w-lg mx-auto px-4 pt-2 relative z-10">
+        <div className="flex items-center gap-3 text-[8px] font-mono tracking-widest uppercase text-text-dim/60">
+          <span className="flex items-center gap-1">
+            <span className={`w-1 h-1 rounded-full ${navigator.onLine ? "bg-nexus-green" : "bg-nexus-error glow-breathe"}`} />
+            {navigator.onLine ? "ONLINE" : "OFFLINE"}
+          </span>
+          <span className="text-border-subtle">|</span>
+          <span>{gasUrl ? "GAS:LINKED" : "GAS:NONE"}</span>
+          <span className="text-border-subtle">|</span>
+          <span>PWA:ACTIVE</span>
+          {offlineQueue.length > 0 && (
+            <>
+              <span className="text-border-subtle">|</span>
+              <span className="text-nexus-warning">QUEUE:{offlineQueue.length}</span>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Reminder Banner */}
       <ReminderBanner t={t} />

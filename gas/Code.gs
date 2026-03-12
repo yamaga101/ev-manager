@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.4.0";
+var GAS_VERSION = "4.5.0";
 
 // ---------------------------------------------------------------------------
 // Entry point
