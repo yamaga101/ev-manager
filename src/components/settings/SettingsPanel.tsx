@@ -87,26 +87,29 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
     { value: "system", icon: Monitor, label: t.systemDefault },
   ];
 
+  const sectionTitle = "font-display text-[10px] font-semibold text-nexus-cyan/60 tracking-[0.2em] uppercase mb-3 flex items-center gap-2";
+  const inputBase = "w-full rounded-lg border border-border-subtle bg-space-panel p-2.5 text-sm font-mono-data text-text-bright focus:outline-none focus:border-nexus-cyan focus:shadow-[0_0_0_2px_rgba(0,240,255,0.1)] transition-all";
+
   return (
     <div className="h-full overflow-y-auto custom-scroll pb-4 space-y-6">
       {/* Theme */}
       <section>
-        <h3 className="text-sm font-semibold text-text-primary dark:text-dark-text mb-3 flex items-center gap-2">
-          <Sun size={16} /> {t.theme}
+        <h3 className={sectionTitle}>
+          <Sun size={14} className="text-nexus-cyan/60" /> {t.theme}
         </h3>
         <div className="flex gap-2">
           {themeOptions.map(({ value, icon: Icon, label }) => (
             <button
               key={value}
               onClick={() => setTheme(value)}
-              className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-xl border transition-colors ${
+              className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${
                 theme === value
-                  ? "border-ev-primary bg-ev-primary/5 text-ev-primary"
-                  : "border-border dark:border-dark-border text-text-muted hover:bg-gray-50 dark:hover:bg-gray-800"
+                  ? "border-nexus-cyan/30 bg-nexus-cyan-glow text-nexus-cyan shadow-[0_0_12px_rgba(0,240,255,0.1)]"
+                  : "border-border-subtle text-text-dim hover:text-text-mid hover:border-border-glow"
               }`}
             >
-              <Icon size={18} />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon size={16} />
+              <span className="text-[10px] font-medium tracking-wider">{label}</span>
             </button>
           ))}
         </div>
@@ -114,21 +117,21 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
       {/* Language */}
       <section>
-        <h3 className="text-sm font-semibold text-text-primary dark:text-dark-text mb-3 flex items-center gap-2">
-          <Globe size={16} /> {t.language}
+        <h3 className={sectionTitle}>
+          <Globe size={14} className="text-nexus-cyan/60" /> {t.language}
         </h3>
         <div className="flex gap-2">
           {(["en", "ja"] as const).map((l) => (
             <button
               key={l}
               onClick={() => setLang(l)}
-              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 rounded-xl border text-sm font-medium tracking-wider transition-all ${
                 lang === l
-                  ? "border-ev-primary bg-ev-primary/5 text-ev-primary"
-                  : "border-border dark:border-dark-border text-text-muted hover:bg-gray-50 dark:hover:bg-gray-800"
+                  ? "border-nexus-cyan/30 bg-nexus-cyan-glow text-nexus-cyan"
+                  : "border-border-subtle text-text-dim hover:text-text-mid hover:border-border-glow"
               }`}
             >
-              {l === "en" ? "English" : "日本語"}
+              {l === "en" ? "EN" : "JA"}
             </button>
           ))}
         </div>
@@ -136,26 +139,21 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
       {/* Vehicle Settings */}
       <section>
-        <h3 className="text-sm font-semibold text-text-primary dark:text-dark-text mb-3 flex items-center gap-2">
-          <Car size={16} /> {t.vehicle}
+        <h3 className={sectionTitle}>
+          <Car size={14} className="text-nexus-cyan/60" /> {t.vehicle}
         </h3>
 
-        {/* Presets */}
         <div className="mb-3">
-          <label className="text-text-muted text-xs block mb-1">
-            {t.vehiclePreset}
-          </label>
+          <label className="text-text-dim text-[9px] tracking-[0.15em] uppercase block mb-1">{t.vehiclePreset}</label>
           <div className="flex flex-wrap gap-1">
             {VEHICLE_PRESETS.map((preset) => (
               <button
                 key={preset.capacity}
-                onClick={() =>
-                  updateSettings({ batteryCapacity: preset.capacity })
-                }
-                className={`text-xs px-2 py-1 rounded-lg border transition-colors ${
+                onClick={() => updateSettings({ batteryCapacity: preset.capacity })}
+                className={`text-[10px] px-2.5 py-1 rounded-lg border tracking-wider transition-all ${
                   settings.batteryCapacity === preset.capacity
-                    ? "border-ev-primary bg-ev-primary/5 text-ev-primary"
-                    : "border-border dark:border-dark-border text-text-muted hover:bg-gray-50 dark:hover:bg-gray-800"
+                    ? "border-nexus-cyan/30 bg-nexus-cyan-glow text-nexus-cyan"
+                    : "border-border-subtle text-text-dim hover:text-text-mid hover:border-border-glow"
                 }`}
               >
                 {preset.label}
@@ -166,51 +164,39 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
         <div className="space-y-3">
           <div>
-            <label className="text-text-muted text-xs block mb-1">
-              {t.batteryCapacity}
-            </label>
+            <label className="text-text-dim text-[9px] tracking-[0.15em] uppercase block mb-1">{t.batteryCapacity}</label>
             <input
               type="number"
               value={settings.batteryCapacity}
-              onChange={(e) =>
-                updateSettings({ batteryCapacity: Number(e.target.value) })
-              }
-              className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+              onChange={(e) => updateSettings({ batteryCapacity: Number(e.target.value) })}
+              className={inputBase}
             />
           </div>
           <div>
-            <label className="text-text-muted text-xs block mb-1">
-              {t.electricityRate}
-            </label>
+            <label className="text-text-dim text-[9px] tracking-[0.15em] uppercase block mb-1">{t.electricityRate}</label>
             <input
               type="number"
               value={settings.electricityRate}
-              onChange={(e) =>
-                updateSettings({ electricityRate: Number(e.target.value) })
-              }
+              onChange={(e) => updateSettings({ electricityRate: Number(e.target.value) })}
               step="0.01"
-              className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+              className={inputBase}
             />
           </div>
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               checked={settings.useNightRate}
-              onChange={(e) =>
-                updateSettings({ useNightRate: e.target.checked })
-              }
-              className="w-4 h-4 accent-ev-primary"
+              onChange={(e) => updateSettings({ useNightRate: e.target.checked })}
+              className="w-4 h-4 accent-nexus-cyan"
             />
-            <label className="text-text-muted text-sm">{t.nightRate}</label>
+            <label className="text-text-mid text-sm">{t.nightRate}</label>
             {settings.useNightRate && (
               <input
                 type="number"
                 value={settings.nightRate}
-                onChange={(e) =>
-                  updateSettings({ nightRate: Number(e.target.value) })
-                }
+                onChange={(e) => updateSettings({ nightRate: Number(e.target.value) })}
                 step="0.01"
-                className="rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm w-24 ml-auto text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+                className="rounded-lg border border-border-subtle bg-space-panel p-2 text-sm font-mono-data w-24 ml-auto text-text-bright focus:outline-none focus:border-nexus-cyan"
               />
             )}
           </div>
@@ -219,52 +205,48 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
       {/* Charging Locations */}
       <section>
-        <h3 className="text-sm font-semibold text-text-primary dark:text-dark-text mb-2 flex items-center gap-2">
-          <MapPin size={16} /> {t.chargingLocations}
+        <h3 className={sectionTitle}>
+          <MapPin size={14} className="text-nexus-cyan/60" /> {t.chargingLocations}
         </h3>
         <div className="space-y-2 mb-4">
           {locations.map((loc) => (
             <div
               key={loc.id}
-              className={`flex justify-between items-center p-2 rounded-lg border transition-colors ${
+              className={`flex justify-between items-center p-2.5 rounded-lg border transition-all ${
                 editingLocId === loc.id
-                  ? "border-ev-primary bg-ev-primary/5"
-                  : "border-border dark:border-dark-border bg-white dark:bg-dark-surface"
+                  ? "border-nexus-cyan/30 bg-nexus-cyan-glow"
+                  : "border-border-subtle glass-panel"
               }`}
             >
               <div>
-                <div className="font-medium text-sm text-ev-primary">
-                  {loc.name}
-                </div>
-                <div className="text-xs text-text-muted">
+                <div className="font-medium text-sm text-nexus-cyan">{loc.name}</div>
+                <div className="text-[10px] text-text-dim font-mono-data">
                   {loc.voltage}V / {loc.amperage}A / {loc.kw}kW
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => startEdit(loc)}
-                  className="text-text-muted hover:text-ev-primary transition-colors"
+                  className="text-text-dim hover:text-nexus-cyan transition-colors"
                 >
-                  <Edit2 size={16} />
+                  <Edit2 size={14} />
                 </button>
                 <button
                   onClick={() => removeLocation(loc.id)}
-                  className="text-text-muted hover:text-ev-error transition-colors"
+                  className="text-text-dim hover:text-nexus-error transition-colors"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
           ))}
           {locations.length === 0 && (
-            <div className="text-xs text-text-muted italic">
-              {t.noLocations}
-            </div>
+            <div className="text-[10px] text-text-dim italic tracking-wider">{t.noLocations}</div>
           )}
         </div>
 
-        <div className="bg-surface-alt dark:bg-gray-800/50 p-3 rounded-xl border border-border dark:border-dark-border">
-          <div className="text-xs text-text-muted mb-2 uppercase font-medium">
+        <div className="glass-panel p-3 rounded-xl">
+          <div className="text-[9px] text-text-dim mb-2 uppercase tracking-[0.15em] font-medium">
             {editingLocId ? t.editLocation : t.addNewLocation}
           </div>
           <input
@@ -272,47 +254,41 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
             placeholder="Name"
             value={newLoc.name}
             onChange={(e) => setNewLoc({ ...newLoc, name: e.target.value })}
-            className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 mb-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+            className={`${inputBase} mb-2`}
           />
           <div className="grid grid-cols-3 gap-2 mb-2">
             <input
               type="number"
               placeholder="V"
               value={newLoc.voltage}
-              onChange={(e) =>
-                setNewLoc({ ...newLoc, voltage: Number(e.target.value) })
-              }
-              className="rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+              onChange={(e) => setNewLoc({ ...newLoc, voltage: Number(e.target.value) })}
+              className={inputBase}
             />
             <input
               type="number"
               placeholder="A"
               value={newLoc.amperage}
-              onChange={(e) =>
-                setNewLoc({ ...newLoc, amperage: Number(e.target.value) })
-              }
-              className="rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+              onChange={(e) => setNewLoc({ ...newLoc, amperage: Number(e.target.value) })}
+              className={inputBase}
             />
             <input
               type="number"
               placeholder="kW"
               value={newLoc.kw}
-              onChange={(e) =>
-                setNewLoc({ ...newLoc, kw: Number(e.target.value) })
-              }
-              className="rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-2 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+              onChange={(e) => setNewLoc({ ...newLoc, kw: Number(e.target.value) })}
+              className={inputBase}
             />
           </div>
           <button
             onClick={handleSaveLocation}
-            className="w-full py-2 bg-ev-primary text-white rounded-lg text-sm font-medium hover:bg-ev-primary-dark transition-colors mb-1"
+            className="btn-plasma w-full py-2 rounded-lg text-sm font-display tracking-wider mb-1"
           >
             {editingLocId ? t.updateLocation : t.addLocation}
           </button>
           {editingLocId && (
             <button
               onClick={cancelEdit}
-              className="w-full py-1 text-xs text-text-muted hover:text-text-primary underline"
+              className="w-full py-1 text-[10px] text-text-dim hover:text-nexus-cyan tracking-wider uppercase transition-colors"
             >
               {t.cancelEdit}
             </button>
@@ -322,45 +298,45 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
       {/* Gemini API Key */}
       <section>
-        <label className="text-sm font-semibold text-text-primary dark:text-dark-text mb-2 flex items-center gap-2">
-          <Camera size={16} /> {t.geminiApiKey}
+        <label className={sectionTitle}>
+          <Camera size={14} className="text-nexus-cyan/60" /> {t.geminiApiKey}
         </label>
         <input
           type="password"
           value={settings.geminiApiKey ?? ""}
           onChange={(e) => updateSettings({ geminiApiKey: e.target.value || undefined })}
           placeholder="AIza..."
-          className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+          className={inputBase}
         />
-        <p className="text-xs text-text-muted mt-1 pl-1">{t.geminiApiKeyHint}</p>
+        <p className="text-[10px] text-text-dim mt-1 pl-1">{t.geminiApiKeyHint}</p>
       </section>
 
       {/* GAS URL */}
       <section>
-        <label className="text-sm font-semibold text-text-primary dark:text-dark-text mb-2 flex items-center gap-2">
-          <Cloud size={16} /> {t.gasUrl}
+        <label className={sectionTitle}>
+          <Cloud size={14} className="text-nexus-cyan/60" /> {t.gasUrl}
         </label>
         <input
           type="text"
           value={settings.gasUrl}
           onChange={(e) => updateSettings({ gasUrl: e.target.value })}
           placeholder="https://script.google.com/..."
-          className="w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 text-sm text-text-primary dark:text-dark-text focus:outline-none focus:border-ev-primary"
+          className={inputBase}
         />
         <a
           href={SPREADSHEET_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2 flex items-center justify-center gap-2 py-2 rounded-xl border border-ev-primary/50 text-ev-primary text-sm font-medium hover:bg-ev-primary/5 transition-colors"
+          className="mt-2 flex items-center justify-center gap-2 py-2 rounded-xl btn-neon text-sm"
         >
-          <ExternalLink size={14} /> {t.openSpreadsheet}
+          <ExternalLink size={13} /> {t.openSpreadsheet}
         </a>
       </section>
 
       {/* JSON Import/Export */}
       <section>
-        <h3 className="text-sm font-semibold text-text-primary dark:text-dark-text mb-3 flex items-center gap-2">
-          <Download size={16} /> {t.jsonExport} / {t.jsonImport}
+        <h3 className={sectionTitle}>
+          <Download size={14} className="text-nexus-cyan/60" /> {t.jsonExport} / {t.jsonImport}
         </h3>
         <div className="flex gap-2">
           <button
@@ -368,15 +344,15 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
               exportJson(history, locations, settings);
               showToast(t.jsonExportSuccess, "success");
             }}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-ev-primary text-ev-primary text-sm font-medium hover:bg-ev-primary/5 transition-colors"
+            className="flex-1 btn-neon flex items-center justify-center gap-2 py-2 rounded-xl text-sm"
           >
-            <Download size={14} /> {t.jsonExport}
+            <Download size={13} /> {t.jsonExport}
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-ev-secondary text-ev-secondary text-sm font-medium hover:bg-ev-secondary/5 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-nexus-violet/30 text-nexus-violet text-sm font-medium hover:bg-nexus-violet-glow transition-all"
           >
-            <Upload size={14} /> {t.jsonImport}
+            <Upload size={13} /> {t.jsonImport}
           </button>
         </div>
         <input
@@ -413,18 +389,17 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
       {/* Offline Queue Status */}
       {offlineQueue.length > 0 && (
-        <section className="bg-ev-warning/10 border border-ev-warning/30 rounded-xl p-3">
-          <div className="text-ev-warning text-sm font-medium flex items-center gap-2">
-            <WifiOff size={14} /> {t.offlineQueue}: {offlineQueue.length}{" "}
-            {t.pendingItems}
+        <section className="glass-panel p-3 rounded-xl border-nexus-warning/20">
+          <div className="text-nexus-warning text-sm font-medium flex items-center gap-2">
+            <WifiOff size={14} /> {t.offlineQueue}: {offlineQueue.length} {t.pendingItems}
           </div>
-          <p className="text-xs text-text-muted mt-1">{t.autoSendOnline}</p>
+          <p className="text-[10px] text-text-dim mt-1">{t.autoSendOnline}</p>
         </section>
       )}
 
       {/* Version */}
-      <div className="text-center text-xs text-text-muted pt-2">
-        EV Manager v{APP_VERSION}
+      <div className="text-center font-display text-[10px] text-text-mid tracking-[0.3em] pt-2 opacity-60">
+        EV CHARGE LOG v{APP_VERSION}
       </div>
     </div>
   );

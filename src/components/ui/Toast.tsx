@@ -8,12 +8,12 @@ export function ToastContainer() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`rounded-lg px-4 py-3 text-sm font-medium pointer-events-auto shadow-lg backdrop-blur-sm ${
+          className={`glass-panel rounded-lg px-4 py-3 text-sm font-medium pointer-events-auto ${
             t.type === "success"
-              ? "border-l-4 border-ev-success bg-ev-success/10 text-ev-success dark:bg-ev-success/20"
+              ? "border-l-2 border-nexus-green text-nexus-green"
               : t.type === "error"
-                ? "border-l-4 border-ev-error bg-ev-error/10 text-ev-error dark:bg-ev-error/20"
-                : "border-l-4 border-ev-primary bg-ev-primary/10 text-ev-primary dark:bg-ev-primary/20"
+                ? "border-l-2 border-nexus-error text-nexus-error"
+                : "border-l-2 border-nexus-cyan text-nexus-cyan"
           } ${t.exiting ? "toast-exit" : "toast-enter"}`}
         >
           {t.message}

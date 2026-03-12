@@ -95,27 +95,27 @@ export function HistoryList({ t }: HistoryListProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Sub-tab selector */}
-      <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1 mb-4">
+      <div className="flex rounded-xl bg-space-panel border border-border-subtle p-1 mb-4">
         <button
           onClick={() => setHistorySubTab("charging")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-semibold tracking-wider uppercase transition-all ${
             historySubTab === "charging"
-              ? "bg-white dark:bg-dark-surface text-ev-primary shadow-sm"
-              : "text-text-muted hover:text-text-primary dark:hover:text-dark-text"
+              ? "bg-nexus-cyan/10 text-nexus-cyan border border-nexus-cyan/20 shadow-[0_0_10px_rgba(0,240,255,0.1)]"
+              : "text-text-dim hover:text-text-mid"
           }`}
         >
-          <BatteryCharging size={14} />
+          <BatteryCharging size={13} />
           {t.history}
         </button>
         <button
           onClick={() => setHistorySubTab("driveLog")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-semibold tracking-wider uppercase transition-all ${
             historySubTab === "driveLog"
-              ? "bg-white dark:bg-dark-surface text-ev-primary shadow-sm"
-              : "text-text-muted hover:text-text-primary dark:hover:text-dark-text"
+              ? "bg-nexus-cyan/10 text-nexus-cyan border border-nexus-cyan/20 shadow-[0_0_10px_rgba(0,240,255,0.1)]"
+              : "text-text-dim hover:text-text-mid"
           }`}
         >
-          <Navigation size={14} />
+          <Navigation size={13} />
           {t.driveLog}
         </button>
       </div>
@@ -128,23 +128,23 @@ export function HistoryList({ t }: HistoryListProps) {
           {history.length > 0 && (
             <button
               onClick={handleExportCSV}
-              className="text-xs text-ev-primary border border-ev-primary px-2 py-1 rounded-lg hover:bg-ev-primary/10 flex items-center gap-1 transition-colors"
+              className="btn-neon text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-lg flex items-center gap-1"
             >
-              <Download size={12} /> {t.csv}
+              <Download size={11} /> {t.csv}
             </button>
           )}
           {selectedIds.length > 0 ? (
             <button
               onClick={handleDeleteSelected}
-              className="text-xs text-ev-error border border-ev-error px-2 py-1 rounded-lg hover:bg-ev-error/10 flex items-center gap-1 transition-colors"
+              className="text-[10px] tracking-wider uppercase text-nexus-error border border-nexus-error/30 px-2.5 py-1 rounded-lg hover:bg-nexus-error/10 flex items-center gap-1 transition-all"
             >
-              <Trash2 size={12} /> {t.delete} ({selectedIds.length})
+              <Trash2 size={11} /> {t.delete} ({selectedIds.length})
             </button>
           ) : (
             history.length > 0 && (
               <button
                 onClick={handleDeleteAll}
-                className="text-xs text-text-muted border border-border dark:border-dark-border px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="text-[10px] tracking-wider uppercase text-text-dim border border-border-subtle px-2.5 py-1 rounded-lg hover:text-text-mid hover:border-border-glow transition-all"
               >
                 {t.deleteAll}
               </button>
@@ -158,7 +158,7 @@ export function HistoryList({ t }: HistoryListProps) {
         <select
           value={locationFilter}
           onChange={(e) => setLocationFilter(e.target.value)}
-          className="mb-2 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-1.5 text-xs text-text-primary dark:text-dark-text w-full appearance-none"
+          className="mb-2 rounded-lg border border-border-subtle bg-space-panel p-1.5 text-xs text-text-bright w-full appearance-none"
         >
           <option value="">{t.allLocations}</option>
           {allLocations.map((loc) => (
@@ -179,9 +179,9 @@ export function HistoryList({ t }: HistoryListProps) {
               selectedIds.length === filteredHistory.length
             }
             onChange={handleSelectAll}
-            className="w-4 h-4 rounded accent-ev-primary cursor-pointer"
+            className="w-4 h-4 rounded accent-nexus-cyan cursor-pointer"
           />
-          <span className="text-xs text-text-muted">
+          <span className="text-[10px] text-text-dim tracking-wider uppercase">
             {t.selectAll} ({filteredHistory.length})
           </span>
         </div>
@@ -190,7 +190,7 @@ export function HistoryList({ t }: HistoryListProps) {
       {/* List */}
       <div className="flex-1 overflow-y-auto custom-scroll space-y-3 pb-4">
         {filteredHistory.length === 0 ? (
-          <div className="text-center text-text-muted py-10">
+          <div className="text-center text-text-dim py-10 font-display tracking-wider text-sm">
             {t.noRecords}
           </div>
         ) : (
@@ -211,15 +211,17 @@ export function HistoryList({ t }: HistoryListProps) {
             return (
               <div
                 key={item.id}
-                className={`bg-white dark:bg-dark-surface rounded-lg p-3 border-l-4 shadow-sm transition-colors ${
+                className={`glass-panel rounded-lg p-3 border-l-2 transition-all ${
                   selectedIds.includes(item.id)
-                    ? "border-ev-primary bg-ev-primary/5"
-                    : "border-gray-200 dark:border-gray-700"
+                    ? "border-l-nexus-cyan bg-nexus-cyan-glow"
+                    : ""
                 }`}
                 style={
                   !selectedIds.includes(item.id) && speed > 0
                     ? { borderLeftColor: badge.color }
-                    : undefined
+                    : selectedIds.includes(item.id)
+                      ? undefined
+                      : { borderLeftColor: "rgba(0, 240, 255, 0.15)" }
                 }
               >
                 <div className="flex justify-between items-start">
@@ -228,41 +230,41 @@ export function HistoryList({ t }: HistoryListProps) {
                       type="checkbox"
                       checked={selectedIds.includes(item.id)}
                       onChange={() => toggleSelect(item.id)}
-                      className="mt-1 w-4 h-4 rounded accent-ev-primary cursor-pointer flex-shrink-0"
+                      className="mt-1 w-4 h-4 rounded accent-nexus-cyan cursor-pointer flex-shrink-0"
                     />
                     <div className="min-w-0">
-                      <div className="text-xs text-text-muted">
+                      <div className="text-[10px] text-text-dim font-mono-data">
                         {item.startTime
                           ? formatDate(item.startTime)
                           : formatDate(item.timestamp || "")}
                       </div>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <span className="text-lg font-semibold text-text-primary dark:text-dark-text">
+                        <span className="text-lg font-mono-data font-bold text-text-bright">
                           {item.startRange || "-"}
                         </span>
                         <ArrowRight
-                          size={12}
-                          className="text-text-muted inline"
+                          size={11}
+                          className="text-nexus-cyan/60 inline"
                         />
-                        <span className="text-lg font-semibold text-text-primary dark:text-dark-text">
+                        <span className="text-lg font-mono-data font-bold text-text-bright">
                           {item.endRange || "-"}
                         </span>
-                        <span className="text-xs text-text-muted">km</span>
+                        <span className="text-[9px] text-text-dim">km</span>
                       </div>
-                      <div className="text-sm text-text-primary dark:text-dark-text mt-0.5">
-                        {t.battPct}: {item.startBattery || item.battery}%{" "}
-                        <ArrowRight size={10} className="inline text-text-muted" />{" "}
+                      <div className="text-xs font-mono-data text-text-mid mt-0.5">
+                        {item.startBattery || item.battery}%{" "}
+                        <ArrowRight size={9} className="inline text-nexus-cyan/30" />{" "}
                         {item.endBattery || item.batteryAfter}%
                       </div>
-                      <div className="flex gap-3 mt-1 text-xs">
-                        <span className="text-ev-primary font-medium">
+                      <div className="flex gap-3 mt-1 text-[10px] font-mono-data">
+                        <span className="text-nexus-cyan font-medium">
                           {kwh.toFixed(1)}kWh
                         </span>
-                        <span className="text-ev-success font-medium">
-                          &yen;{cost}
+                        <span className="text-nexus-green font-medium">
+                          ¥{cost}
                         </span>
                         {duration > 0 && (
-                          <span className="text-text-primary dark:text-dark-text">
+                          <span className="text-text-mid">
                             {formatDuration(duration)}
                           </span>
                         )}
@@ -273,8 +275,8 @@ export function HistoryList({ t }: HistoryListProps) {
                         )}
                       </div>
                       {item.locationName && (
-                        <div className="text-xs text-ev-primary mt-1 flex items-center gap-1">
-                          <MapPin size={10} /> {item.locationName}
+                        <div className="text-[10px] text-nexus-cyan/60 mt-1 flex items-center gap-1">
+                          <MapPin size={9} /> {item.locationName}
                         </div>
                       )}
                     </div>
@@ -283,16 +285,16 @@ export function HistoryList({ t }: HistoryListProps) {
                     <button
                       onClick={() => setEditingItem(item)}
                       title={t.editSession}
-                      className="h-9 w-9 flex items-center justify-center bg-ev-primary text-white rounded-lg hover:bg-ev-primary-dark transition-colors"
+                      className="h-8 w-8 flex items-center justify-center bg-nexus-cyan/10 text-nexus-cyan rounded-lg hover:bg-nexus-cyan/20 border border-nexus-cyan/20 transition-all"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
                       title={t.delete}
-                      className="h-9 w-9 flex items-center justify-center border border-ev-error text-ev-error rounded-lg hover:bg-ev-error hover:text-white transition-colors"
+                      className="h-8 w-8 flex items-center justify-center border border-nexus-error/20 text-nexus-error/60 rounded-lg hover:bg-nexus-error/10 hover:text-nexus-error transition-all"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>

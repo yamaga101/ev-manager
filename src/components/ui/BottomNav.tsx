@@ -24,29 +24,46 @@ const tabs: { id: TabId; icon: typeof BatteryCharging; labelKey: keyof Translati
 
 export function BottomNav({ activeTab, onTabChange, t }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-dark-surface border-t border-border dark:border-dark-border pb-safe" aria-label="Main navigation" role="navigation">
-      <div className="flex justify-around items-center h-14 max-w-lg mx-auto">
-        {tabs.map(({ id, icon: Icon, labelKey }) => {
-          const isActive = activeTab === id;
-          return (
-            <button
-              key={id}
-              onClick={() => onTabChange(id)}
-              aria-label={t[labelKey]}
-              aria-current={isActive ? "page" : undefined}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-                isActive
-                  ? "text-ev-primary"
-                  : "text-text-muted hover:text-text-primary dark:hover:text-dark-text"
-              }`}
-            >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] mt-0.5 font-medium">
-                {t[labelKey]}
-              </span>
-            </button>
-          );
-        })}
+    <nav
+      className="fixed bottom-3 left-3 right-3 z-50"
+      aria-label="Main navigation"
+      role="navigation"
+    >
+      <div className="max-w-lg mx-auto glass-panel rounded-2xl border border-border-subtle pb-safe">
+        <div className="flex justify-around items-center h-14">
+          {tabs.map(({ id, icon: Icon, labelKey }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => onTabChange(id)}
+                aria-label={t[labelKey]}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex flex-col items-center justify-center flex-1 h-full transition-all relative ${
+                  isActive
+                    ? "text-nexus-cyan"
+                    : "text-text-dim hover:text-text-mid"
+                }`}
+              >
+                {/* Active glow indicator */}
+                {isActive && (
+                  <div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-nexus-cyan glow-breathe"
+                    style={{ boxShadow: "0 0 8px rgba(0, 240, 255, 0.5)" }}
+                  />
+                )}
+                <Icon
+                  size={20}
+                  strokeWidth={isActive ? 2.5 : 1.5}
+                  className={isActive ? "drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]" : ""}
+                />
+                <span className="text-[9px] mt-0.5 font-medium tracking-wider uppercase">
+                  {t[labelKey]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

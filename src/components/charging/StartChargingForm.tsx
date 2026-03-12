@@ -97,11 +97,11 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-dark-surface rounded-2xl p-4 shadow-sm border border-border dark:border-dark-border">
+    <div className="glass-panel hud-corners scan-lines p-4 slide-up">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-ev-primary">
-          <PlugZap size={20} />
-          <h2 className="text-lg font-semibold">{t.startCharging}</h2>
+        <div className="flex items-center gap-2 text-nexus-cyan">
+          <PlugZap size={18} className="drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]" />
+          <h2 className="font-display text-sm font-semibold tracking-widest uppercase">{t.startCharging}</h2>
         </div>
         {geminiApiKey && (
           <MeterCaptureFlow apiKey={geminiApiKey} t={t} onApply={handleMeterApply} />
@@ -173,7 +173,7 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
 
       <button
         onClick={handleStart}
-        className="w-full mt-4 py-4 rounded-xl font-semibold text-lg tracking-wide text-white bg-ev-primary hover:bg-ev-primary-dark shadow-lg hover:shadow-ev-primary/30 transition-all active:scale-[0.98]"
+        className="btn-plasma w-full mt-4 py-4 rounded-xl text-lg tracking-widest font-display"
       >
         {t.startCharging}
       </button>

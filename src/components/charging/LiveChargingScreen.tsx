@@ -163,17 +163,17 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
   };
 
   return (
-    <div className="pulse-glow bg-white dark:bg-dark-surface rounded-2xl p-4 shadow-sm border border-ev-primary/20">
+    <div className="charging-pulse glass-panel hud-corners scan-lines p-4 slide-up">
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-2 text-ev-primary">
-          <BatteryCharging size={20} />
-          <h2 className="text-lg font-semibold animate-pulse">
+        <div className="flex items-center gap-2 text-nexus-green">
+          <BatteryCharging size={18} className="drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" />
+          <h2 className="font-display text-sm font-semibold tracking-widest uppercase glow-breathe">
             {t.charging}
           </h2>
         </div>
         <button
           onClick={handleCancel}
-          className="text-xs text-text-muted underline hover:text-text-primary dark:hover:text-dark-text"
+          className="text-[10px] text-text-dim hover:text-nexus-error tracking-wider uppercase transition-colors"
         >
           {t.cancel}
         </button>
@@ -183,30 +183,30 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       <div className="relative flex items-center justify-center mb-4">
         <ProgressRing radius={70} stroke={6} progress={progress} />
         <div className="absolute text-center">
-          <div className="text-3xl font-semibold text-ev-primary">
+          <div className="text-3xl font-mono-data font-bold text-nexus-cyan data-flicker" style={{ textShadow: "0 0 20px rgba(0, 240, 255, 0.4)" }}>
             {formatTimer(elapsed)}
           </div>
-          <div className="text-xs text-text-muted">{t.elapsed}</div>
+          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.elapsed}</div>
         </div>
       </div>
 
       {/* Live Stats Row */}
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="bg-surface-alt dark:bg-gray-800 rounded-lg p-2 text-center">
-          <div className="text-xs text-text-muted">{t.estPct}</div>
-          <div className="text-xl font-semibold text-ev-primary">
+        <div className="rounded-lg p-2 text-center bg-nexus-cyan-glow border border-border-subtle">
+          <div className="text-[9px] text-text-dim tracking-wider uppercase">{t.estPct}</div>
+          <div className="text-xl font-mono-data font-bold text-nexus-cyan">
             {Math.round(currentPct)}%
           </div>
         </div>
-        <div className="bg-surface-alt dark:bg-gray-800 rounded-lg p-2 text-center">
-          <div className="text-xs text-text-muted">{t.cost}</div>
-          <div className="text-xl font-semibold text-ev-success">
+        <div className="rounded-lg p-2 text-center bg-nexus-green-glow border border-border-subtle">
+          <div className="text-[9px] text-text-dim tracking-wider uppercase">{t.cost}</div>
+          <div className="text-xl font-mono-data font-bold text-nexus-green">
             &yen;{liveCost}
           </div>
         </div>
-        <div className="bg-surface-alt dark:bg-gray-800 rounded-lg p-2 text-center">
-          <div className="text-xs text-text-muted">{t.estDone}</div>
-          <div className="text-sm font-semibold text-text-primary dark:text-dark-text">
+        <div className="rounded-lg p-2 text-center bg-nexus-violet-glow border border-border-subtle">
+          <div className="text-[9px] text-text-dim tracking-wider uppercase">{t.estDone}</div>
+          <div className="text-sm font-mono-data font-bold text-nexus-violet">
             {estCompletionTime.getHours().toString().padStart(2, "0")}:
             {estCompletionTime.getMinutes().toString().padStart(2, "0")}
           </div>
@@ -214,17 +214,13 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       </div>
 
       {/* Session Info */}
-      <div className="bg-surface-alt dark:bg-gray-800 rounded-lg p-2 mb-4 text-xs">
-        <div className="flex justify-between text-text-muted">
-          <span>
-            {t.start}: {formatDate(session.startTime)}
-          </span>
-          <span>
-            {session.startBattery}% / {session.startRange}km
-          </span>
+      <div className="rounded-lg p-2 mb-4 text-xs bg-space-glass border border-border-subtle">
+        <div className="flex justify-between text-text-dim font-mono-data text-[11px]">
+          <span>{formatDate(session.startTime)}</span>
+          <span>{session.startBattery}% / {session.startRange}km</span>
         </div>
         {session.locationName && (
-          <div className="text-ev-primary mt-1 flex items-center gap-1">
+          <div className="text-nexus-cyan/70 mt-1 flex items-center gap-1 text-[11px]">
             <MapPin size={10} /> {session.locationName} ({locationKw}kW)
           </div>
         )}
@@ -262,11 +258,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       <button
         onClick={handleComplete}
         disabled={isSaving}
-        className={`w-full mt-4 py-4 rounded-xl font-semibold text-lg tracking-wide transition-all active:scale-[0.98] ${
-          isSaving
-            ? "bg-ev-primary text-white shadow-lg"
-            : "bg-ev-primary text-white hover:bg-ev-primary-dark shadow-lg hover:shadow-ev-primary/30"
-        }`}
+        className="btn-plasma w-full mt-4 py-4 rounded-xl text-lg tracking-widest font-display"
       >
         {isSaving ? (
           <span>

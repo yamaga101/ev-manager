@@ -44,7 +44,6 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
   const reminders = useMemo<Reminder[]>(() => {
     const result: Reminder[] = [];
 
-    // Maintenance records with nextDueDate
     for (const rec of maintenanceRecords) {
       if (!rec.nextDueDate) continue;
       const days = getDaysFromNow(rec.nextDueDate);
@@ -59,7 +58,6 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
       }
     }
 
-    // Inspection records with nextDueDate
     for (const rec of inspectionRecords) {
       const days = getDaysFromNow(rec.nextDueDate);
       const severity = classifyDays(days);
@@ -79,7 +77,6 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
       }
     }
 
-    // Insurance records - check endDate
     for (const rec of insuranceRecords) {
       const days = getDaysFromNow(rec.endDate);
       const severity = classifyDays(days);
@@ -93,7 +90,6 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
       }
     }
 
-    // Tax records - unpaid only, check dueDate
     for (const rec of taxRecords) {
       if (rec.paidDate) continue;
       const days = getDaysFromNow(rec.dueDate);
@@ -108,7 +104,6 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
       }
     }
 
-    // Sort: overdue first, then by days ascending
     return result.sort((a, b) => {
       if (a.severity !== b.severity) {
         return a.severity === "overdue" ? -1 : 1;
@@ -125,34 +120,33 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
     <div
       className={`w-full border-b ${
         hasOverdue
-          ? "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800"
-          : "bg-yellow-50 dark:bg-yellow-950/40 border-yellow-200 dark:border-yellow-800"
+          ? "bg-nexus-error/5 border-nexus-error/20"
+          : "bg-nexus-warning/5 border-nexus-warning/20"
       }`}
       role="alert"
       aria-live="polite"
     >
       <div className="max-w-lg mx-auto px-4 py-2">
-        {/* Header row */}
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5">
             {hasOverdue ? (
               <AlertTriangle
-                size={15}
-                className="text-red-500 dark:text-red-400 shrink-0"
+                size={13}
+                className="text-nexus-error shrink-0"
+                style={{ filter: "drop-shadow(0 0 4px rgba(255, 61, 87, 0.5))" }}
                 aria-hidden="true"
               />
             ) : (
               <Bell
-                size={15}
-                className="text-yellow-600 dark:text-yellow-400 shrink-0"
+                size={13}
+                className="text-nexus-warning shrink-0"
+                style={{ filter: "drop-shadow(0 0 4px rgba(255, 184, 0, 0.5))" }}
                 aria-hidden="true"
               />
             )}
             <span
-              className={`text-xs font-semibold ${
-                hasOverdue
-                  ? "text-red-700 dark:text-red-300"
-                  : "text-yellow-700 dark:text-yellow-300"
+              className={`font-display text-[9px] font-semibold tracking-[0.15em] uppercase ${
+                hasOverdue ? "text-nexus-error" : "text-nexus-warning"
               }`}
             >
               {t.reminders}
@@ -163,15 +157,14 @@ export function ReminderBanner({ t }: ReminderBannerProps) {
             aria-label="dismiss reminders"
             className={`p-0.5 rounded transition-colors ${
               hasOverdue
-                ? "text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
-                : "text-yellow-500 hover:text-yellow-700 dark:text-yellow-500 dark:hover:text-yellow-300"
+                ? "text-nexus-error/50 hover:text-nexus-error"
+                : "text-nexus-warning/50 hover:text-nexus-warning"
             }`}
           >
-            <X size={14} aria-hidden="true" />
+            <X size={12} aria-hidden="true" />
           </button>
         </div>
 
-        {/* Reminder items */}
         <ul className="flex flex-col gap-1" role="list">
           {reminders.map((reminder) => (
             <ReminderItem key={reminder.id} reminder={reminder} t={t} />
@@ -192,21 +185,19 @@ function ReminderItem({ reminder, t }: ReminderItemProps) {
   const absDays = Math.abs(reminder.daysFromNow);
 
   return (
-    <li className="flex items-center justify-between gap-2 text-xs">
+    <li className="flex items-center justify-between gap-2 text-[11px]">
       <span
         className={`truncate ${
-          isOverdue
-            ? "text-red-700 dark:text-red-300"
-            : "text-yellow-700 dark:text-yellow-300"
+          isOverdue ? "text-nexus-error/80" : "text-nexus-warning/80"
         }`}
       >
         {reminder.label}
       </span>
       <span
-        className={`shrink-0 rounded-full px-2 py-0.5 font-medium text-[10px] ${
+        className={`shrink-0 rounded-full px-2 py-0.5 font-mono-data font-medium text-[9px] ${
           isOverdue
-            ? "bg-red-500 text-white dark:bg-red-600"
-            : "bg-yellow-400 text-yellow-900 dark:bg-yellow-500 dark:text-yellow-950"
+            ? "bg-nexus-error/15 text-nexus-error border border-nexus-error/20"
+            : "bg-nexus-warning/15 text-nexus-warning border border-nexus-warning/20"
         }`}
       >
         {isOverdue

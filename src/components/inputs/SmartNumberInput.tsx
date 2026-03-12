@@ -40,14 +40,14 @@ export function SmartNumberInput({
 
   return (
     <div className="flex flex-col gap-1 mb-2">
-      <label className="text-text-muted text-xs font-medium uppercase tracking-wider pl-1">
+      <label className="text-text-dim text-[9px] font-medium uppercase tracking-[0.15em] pl-1">
         {label}
       </label>
       <div
-        className={`flex items-center justify-between rounded-lg border bg-white dark:bg-dark-surface p-1 transition-colors focus-within:border-ev-primary focus-within:ring-2 focus-within:ring-ev-primary/20 ${
+        className={`flex items-center justify-between rounded-lg border bg-space-panel p-1 transition-all focus-within:border-nexus-cyan focus-within:shadow-[0_0_0_2px_rgba(0,240,255,0.1)] ${
           error
-            ? "border-ev-error ring-2 ring-ev-error/20 shake"
-            : "border-border dark:border-dark-border"
+            ? "border-nexus-error shadow-[0_0_0_2px_rgba(255,61,87,0.15)] shake"
+            : "border-border-subtle"
         }`}
         tabIndex={0}
         onKeyDown={handleKeyDown}
@@ -59,7 +59,7 @@ export function SmartNumberInput({
               <RepeaterButton
                 key={step}
                 onClick={() => adjust(step)}
-                className="h-10 w-10 flex items-center justify-center rounded-md bg-gray-50 dark:bg-gray-800 text-ev-error font-bold text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors active:scale-95"
+                className="h-10 w-10 flex items-center justify-center rounded-md bg-nexus-error/8 text-nexus-error/80 font-mono text-xs font-bold hover:bg-nexus-error/15 hover:text-nexus-error transition-all active:scale-95"
               >
                 {step}
               </RepeaterButton>
@@ -73,9 +73,10 @@ export function SmartNumberInput({
               const parsed = parseFloat(e.target.value);
               if (!isNaN(parsed)) onChange(parsed);
             }}
-            className="w-20 bg-transparent text-2xl font-semibold text-ev-primary text-center focus:outline-none appearance-none p-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-20 bg-transparent text-2xl font-mono-data font-bold text-nexus-cyan text-center focus:outline-none appearance-none p-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            style={{ textShadow: "0 0 10px rgba(0, 240, 255, 0.2)" }}
           />
-          <span className="text-xs text-text-muted">{unit}</span>
+          <span className="text-[10px] text-text-dim">{unit}</span>
         </div>
         <div className="flex gap-1">
           {steps
@@ -85,7 +86,7 @@ export function SmartNumberInput({
               <RepeaterButton
                 key={step}
                 onClick={() => adjust(step)}
-                className="h-10 w-10 flex items-center justify-center rounded-md bg-gray-50 dark:bg-gray-800 text-ev-primary font-bold text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors active:scale-95"
+                className="h-10 w-10 flex items-center justify-center rounded-md bg-nexus-cyan/8 text-nexus-cyan/80 font-mono text-xs font-bold hover:bg-nexus-cyan/15 hover:text-nexus-cyan transition-all active:scale-95"
               >
                 +{step}
               </RepeaterButton>

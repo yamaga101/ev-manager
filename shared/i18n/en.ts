@@ -263,6 +263,31 @@ export const en = {
   rangeAcOff: "Range AC OFF",
   segmentCount: "Battery Segments",
   sohEstimate: "SOH est.",
+
+  // Help / Manual
+  helpTitle: "USER MANUAL",
+  helpGettingStarted: "Getting Started",
+  helpGettingStartedDesc: "Set your vehicle's battery capacity and electricity rate in the onboarding wizard. You can change these later in Settings.",
+  helpCharging: "Charging",
+  helpChargingDesc: "Tap START CHARGING to begin a session. Enter your starting battery %, range, and odometer. When done, enter end values and tap COMPLETE & SAVE. Live stats (elapsed time, estimated cost, estimated completion) are displayed during charging.",
+  helpHistory: "History",
+  helpHistoryDesc: "View all charging records and drive logs. Filter by location, select multiple records for bulk delete, or export data as CSV. Tap any record to edit details.",
+  helpVehicle: "Vehicle Management",
+  helpVehicleDesc: "Register vehicle info (plate, VIN, model). Manage maintenance logs, inspection records, insurance policies, and tax payments. Reminders appear when due dates are approaching.",
+  helpStats: "Statistics",
+  helpStatsDesc: "View monthly charge counts, efficiency trends, cost analysis, battery health (SOH) tracking, and favorite charging spots. Switch between monthly, quarterly, and yearly views.",
+  helpSettings: "Settings",
+  helpSettingsDesc: "Configure theme, language, battery capacity, electricity rates (day/night), charging locations, Gemini API key for meter scanning, and Google Sheets sync URL. Export/import data as JSON.",
+  helpSheets: "Google Sheets Sync",
+  helpSheetsDesc: "Data is automatically sent to your Google Spreadsheet via Google Apps Script. 6 sheets are created: charging, maintenance, inspection, insurance, tax, driveLog. Works offline — queued data syncs when back online.",
+  helpMeter: "Meter Scan",
+  helpMeterDesc: "Take a photo of your EV's dashboard meter. Gemini AI reads battery %, range, and segment count automatically. Requires a Gemini API key (free tier available).",
+  helpOffline: "Offline Support",
+  helpOfflineDesc: "This app works fully offline as a PWA. Data is stored locally and synced to Google Sheets when you're back online. Install on your home screen for the best experience.",
+  helpTip: "Tips",
+  helpTipNightRate: "Enable night rate in Settings to track cheaper nighttime charging costs separately.",
+  helpTipPresets: "Use vehicle presets to quickly set battery capacity for popular EV models.",
+  helpTipCsv: "Export CSV from History to analyze your charging data in Excel or Google Sheets.",
 };
 
 export type TranslationKey = keyof typeof en;

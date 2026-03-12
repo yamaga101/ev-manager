@@ -12,15 +12,15 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icon.png", "icon-192.png", "apple-touch-icon.png"],
       manifest: {
-        name: "EV Manager",
-        short_name: "EV Manager",
+        name: "EV Charge Log",
+        short_name: "EV Charge Log",
         description:
           "Comprehensive EV management app: charging, maintenance, insurance, tax, drive log & stats",
         start_url: "/ev-manager/",
         scope: "/ev-manager/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#10B981",
+        background_color: "#030712",
+        theme_color: "#030712",
         icons: [
           {
             src: "icon-192.png",

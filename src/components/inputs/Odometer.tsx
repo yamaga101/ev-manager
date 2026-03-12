@@ -12,20 +12,23 @@ function OdometerDigit({ value, onUp, onDown }: OdometerDigitProps) {
     <div className="flex flex-col items-center gap-1">
       <RepeaterButton
         onClick={onUp}
-        className="p-1 text-ev-primary hover:text-ev-primary-dark transition-colors"
+        className="p-1 text-nexus-cyan/60 hover:text-nexus-cyan transition-colors"
       >
-        <ChevronUp size={24} />
+        <ChevronUp size={20} />
       </RepeaterButton>
-      <div className="w-10 h-14 bg-gray-50 dark:bg-gray-800 border border-border dark:border-dark-border rounded-lg flex items-center justify-center overflow-hidden relative shadow-sm">
-        <div className="text-3xl font-semibold text-text-primary dark:text-dark-text z-10">
+      <div className="w-10 h-14 bg-space-panel border border-border-subtle rounded-lg flex items-center justify-center overflow-hidden relative">
+        <div
+          className="text-3xl font-mono-data font-bold text-nexus-cyan z-10"
+          style={{ textShadow: "0 0 10px rgba(0, 240, 255, 0.2)" }}
+        >
           {value}
         </div>
       </div>
       <RepeaterButton
         onClick={onDown}
-        className="p-1 text-ev-primary hover:text-ev-primary-dark transition-colors"
+        className="p-1 text-nexus-cyan/60 hover:text-nexus-cyan transition-colors"
       >
-        <ChevronDown size={24} />
+        <ChevronDown size={20} />
       </RepeaterButton>
     </div>
   );
@@ -51,10 +54,10 @@ export function Odometer({ value, onChange, label }: OdometerProps) {
 
   return (
     <div className="flex flex-col gap-1 mb-4">
-      <label className="text-text-muted text-xs font-medium uppercase tracking-wider pl-1">
+      <label className="text-text-dim text-[9px] font-medium uppercase tracking-[0.15em] pl-1">
         {label}
       </label>
-      <div className="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl p-3 flex justify-center gap-2">
+      <div className="glass-panel rounded-xl p-3 flex justify-center gap-2">
         {digits.map((d, i) => (
           <OdometerDigit
             key={i}

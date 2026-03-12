@@ -54,12 +54,18 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
   const chartColors = useMemo(
     () => ({
-      grid: isDark ? "#334155" : "#E2E8F0",
-      tick: isDark ? "#94A3B8" : "#64748B",
-      tooltipStyle: isDark
-        ? { backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F1F5F9", borderRadius: "0.5rem", fontSize: "12px" }
-        : { borderRadius: "0.5rem", fontSize: "12px" },
-      legendStyle: isDark ? { color: "#94A3B8", fontSize: 10 } : { fontSize: 10 },
+      grid: "rgba(0, 240, 255, 0.06)",
+      tick: "#8899B3",
+      tooltipStyle: {
+        backgroundColor: "rgba(10, 15, 30, 0.95)",
+        border: "1px solid rgba(0, 240, 255, 0.2)",
+        color: "#F0F6FF",
+        borderRadius: "0.75rem",
+        fontSize: "11px",
+        backdropFilter: "blur(10px)",
+        fontFamily: "JetBrains Mono, monospace",
+      },
+      legendStyle: { color: "#8899B3", fontSize: 10, fontFamily: "Exo 2, sans-serif" },
     }),
     [isDark],
   );
@@ -322,10 +328,10 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase transition-all font-display ${
               period === p
-                ? "bg-ev-primary text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-nexus-cyan/15 text-nexus-cyan border border-nexus-cyan/30 shadow-[0_0_12px_rgba(0,240,255,0.15)]"
+                : "text-text-dim border border-border-subtle hover:text-text-mid hover:border-border-glow"
             }`}
           >
             {p}
@@ -333,54 +339,54 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
         ))}
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - HUD Readouts */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white dark:bg-dark-surface rounded-xl p-3 text-center shadow-sm border border-border dark:border-dark-border">
-          <div className="text-2xl font-semibold text-text-primary dark:text-dark-text">
+        <div className="glass-panel rounded-xl p-3 text-center hud-corners">
+          <div className="text-2xl font-mono-data font-bold text-text-bright data-flicker">
             {stats.count}
           </div>
-          <div className="text-xs text-text-muted">{t.totalSessions}</div>
+          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.totalSessions}</div>
         </div>
-        <div className="bg-white dark:bg-dark-surface rounded-xl p-3 text-center shadow-sm border border-border dark:border-dark-border">
-          <div className="text-2xl font-semibold text-ev-primary">
+        <div className="glass-panel rounded-xl p-3 text-center hud-corners">
+          <div className="text-2xl font-mono-data font-bold text-nexus-cyan" style={{ textShadow: "0 0 15px rgba(0, 240, 255, 0.3)" }}>
             {stats.totalKwh}
           </div>
-          <div className="text-xs text-text-muted">{t.totalKwh}</div>
+          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.totalKwh}</div>
         </div>
-        <div className="bg-white dark:bg-dark-surface rounded-xl p-3 text-center shadow-sm border border-border dark:border-dark-border">
-          <div className="text-2xl font-semibold text-ev-success">
+        <div className="glass-panel rounded-xl p-3 text-center hud-corners">
+          <div className="text-2xl font-mono-data font-bold text-nexus-green" style={{ textShadow: "0 0 15px rgba(57, 255, 20, 0.3)" }}>
             &yen;{stats.totalCost}
           </div>
-          <div className="text-xs text-text-muted">{t.totalCost}</div>
+          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.totalCost}</div>
         </div>
-        <div className="bg-white dark:bg-dark-surface rounded-xl p-3 text-center shadow-sm border border-border dark:border-dark-border">
-          <div className="text-2xl font-semibold text-text-primary dark:text-dark-text">
+        <div className="glass-panel rounded-xl p-3 text-center hud-corners">
+          <div className="text-2xl font-mono-data font-bold text-nexus-violet" style={{ textShadow: "0 0 15px rgba(123, 97, 255, 0.3)" }}>
             {stats.avgEfficiency}
           </div>
-          <div className="text-xs text-text-muted">{t.avgEfficiency}</div>
+          <div className="text-[9px] text-text-dim tracking-widest uppercase mt-0.5">{t.avgEfficiency}</div>
         </div>
       </div>
 
       {filteredHistory.length === 0 ? (
-        <div className="text-center text-text-muted py-10">
+        <div className="text-center text-text-dim py-10 font-display tracking-wider text-sm">
           {t.noDataPeriod}
         </div>
       ) : (
         <>
           {/* Monthly Chart */}
           {monthlyData.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.monthlyCharges}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+              <div className="glass-panel rounded-xl p-3 scan-lines">
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
                     <Tooltip contentStyle={chartColors.tooltipStyle} />
-                    <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill="#00F0FF" radius={[4, 4, 0, 0]} fillOpacity={0.8} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -389,26 +395,27 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* Efficiency Trend */}
           {efficiencyData.length >= 2 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.efficiencyTrend}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+              <div className="glass-panel rounded-xl p-3 scan-lines">
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={efficiencyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="index" tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <XAxis dataKey="index" tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
                     <YAxis
                       domain={["dataMin - 0.5", "dataMax + 0.5"]}
-                      tick={{ fontSize: 11, fill: chartColors.tick }}
+                      tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }}
                     />
                     <Tooltip contentStyle={chartColors.tooltipStyle} />
                     <Line
                       type="monotone"
                       dataKey="efficiency"
-                      stroke="#0EA5E9"
+                      stroke="#7B61FF"
                       strokeWidth={2}
-                      dot={{ fill: "#0EA5E9", r: 3 }}
+                      dot={{ fill: "#7B61FF", r: 3, strokeWidth: 0 }}
+                      style={{ filter: "drop-shadow(0 0 4px rgba(123, 97, 255, 0.4))" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -418,27 +425,28 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* SOH Trend */}
           {sohData.length >= 2 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.sohTrend}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+              <div className="glass-panel rounded-xl p-3 scan-lines">
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={sohData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="index" tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <XAxis dataKey="index" tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
                     <YAxis
                       domain={["dataMin - 2", "dataMax + 2"]}
-                      tick={{ fontSize: 11, fill: chartColors.tick }}
+                      tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }}
                       unit="%"
                     />
                     <Tooltip contentStyle={chartColors.tooltipStyle} formatter={(value: number) => [`${value}%`, "SOH"]} />
                     <Line
                       type="monotone"
                       dataKey="soh"
-                      stroke="#8B5CF6"
+                      stroke="#39FF14"
                       strokeWidth={2}
-                      dot={{ fill: "#8B5CF6", r: 3 }}
+                      dot={{ fill: "#39FF14", r: 3, strokeWidth: 0 }}
+                      style={{ filter: "drop-shadow(0 0 4px rgba(57, 255, 20, 0.4))" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -448,37 +456,41 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* Favorite Spots */}
           {favoriteSpotsData.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.favoriteSpots}
               </h3>
               <div className="flex flex-col gap-2">
                 {favoriteSpotsData.map((spot) => (
                   <div
                     key={spot.name}
-                    className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border flex items-center gap-3"
+                    className="glass-panel rounded-xl p-3 flex items-center gap-3"
                   >
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      spot.rank === 1
+                        ? "bg-nexus-warning/10 border border-nexus-warning/30"
+                        : "bg-space-glass border border-border-subtle"
+                    }`}>
                       {spot.rank === 1 ? (
-                        <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                        <Star size={14} className="text-nexus-warning" style={{ filter: "drop-shadow(0 0 4px rgba(255, 184, 0, 0.5))" }} />
                       ) : (
-                        <MapPin size={16} className="text-text-muted" />
+                        <MapPin size={14} className="text-text-dim" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-text-primary dark:text-dark-text truncate">
+                      <div className="text-sm font-medium text-text-bright truncate">
                         {spot.name}
                       </div>
-                      <div className="text-xs text-text-muted mt-0.5">
+                      <div className="text-[10px] text-text-dim font-mono-data mt-0.5">
                         {spot.totalKwh} kWh
                       </div>
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <div className="text-sm font-semibold text-ev-primary">
-                        {spot.count} {t.timesUsed}
+                      <div className="text-sm font-mono-data font-bold text-nexus-cyan">
+                        {spot.count}x
                       </div>
-                      <div className="text-xs text-ev-success">
-                        avg ¥{spot.avgCost}
+                      <div className="text-[10px] font-mono-data text-nexus-green">
+                        ¥{spot.avgCost}
                       </div>
                     </div>
                   </div>
@@ -489,18 +501,18 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* Monthly Cost Chart */}
           {monthlyCostData.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.monthlyCost}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+              <div className="glass-panel rounded-xl p-3 scan-lines">
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={monthlyCostData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
-                    <YAxis tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
+                    <YAxis tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
                     <Tooltip contentStyle={chartColors.tooltipStyle} formatter={(value: number) => [`¥${Math.round(value)}`, t.cost]} />
-                    <Bar dataKey="cost" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="cost" fill="#FFB800" radius={[4, 4, 0, 0]} fillOpacity={0.8} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -509,16 +521,16 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* Total Cost Trend - Stacked bar chart */}
           {totalCostTrendData.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.costTrend}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl p-3 shadow-sm border border-border dark:border-dark-border">
+              <div className="glass-panel rounded-xl p-3 scan-lines">
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={totalCostTrendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartColors.tick }} />
-                    <YAxis tick={{ fontSize: 11, fill: chartColors.tick }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
+                    <YAxis tick={{ fontSize: 10, fill: chartColors.tick, fontFamily: "JetBrains Mono" }} />
                     <Tooltip
                       contentStyle={chartColors.tooltipStyle}
                       formatter={(value: number, name: string) => {
@@ -543,10 +555,10 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
                       }}
                       wrapperStyle={chartColors.legendStyle}
                     />
-                    <Bar dataKey="charging" stackId="a" fill="#10B981" />
-                    <Bar dataKey="maintenance" stackId="a" fill="#F97316" />
-                    <Bar dataKey="insurance" stackId="a" fill="#3B82F6" />
-                    <Bar dataKey="tax" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="charging" stackId="a" fill="#00F0FF" fillOpacity={0.7} />
+                    <Bar dataKey="maintenance" stackId="a" fill="#FFB800" fillOpacity={0.7} />
+                    <Bar dataKey="insurance" stackId="a" fill="#7B61FF" fillOpacity={0.7} />
+                    <Bar dataKey="tax" stackId="a" fill="#FF3D57" fillOpacity={0.7} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -555,27 +567,27 @@ export function StatsDashboard({ t }: StatsDashboardProps) {
 
           {/* Location Detail Stats */}
           {locationDetailData.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-text-muted mb-2 uppercase">
+            <div className="mb-6 slide-up">
+              <h3 className="font-display text-[10px] font-semibold text-nexus-cyan/60 mb-2 tracking-[0.2em] uppercase">
                 {t.locationStats}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="glass-panel rounded-xl overflow-hidden">
+                <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-border dark:border-dark-border bg-surface-alt dark:bg-gray-800/50">
-                      <th className="text-left p-2 text-text-muted font-medium">{t.chargingLocation}</th>
-                      <th className="text-right p-2 text-text-muted font-medium">{t.totalCharges}</th>
-                      <th className="text-right p-2 text-text-muted font-medium">{t.avgDuration}</th>
-                      <th className="text-right p-2 text-text-muted font-medium">{t.avgCost}</th>
+                    <tr className="border-b border-border-subtle">
+                      <th className="text-left p-2.5 text-text-dim font-medium tracking-wider uppercase text-[9px]">{t.chargingLocation}</th>
+                      <th className="text-right p-2.5 text-text-dim font-medium tracking-wider uppercase text-[9px]">{t.totalCharges}</th>
+                      <th className="text-right p-2.5 text-text-dim font-medium tracking-wider uppercase text-[9px]">{t.avgDuration}</th>
+                      <th className="text-right p-2.5 text-text-dim font-medium tracking-wider uppercase text-[9px]">{t.avgCost}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {locationDetailData.map((loc) => (
-                      <tr key={loc.name} className="border-b border-border/50 dark:border-dark-border/50 last:border-0">
-                        <td className="p-2 text-text-primary dark:text-dark-text font-medium">{loc.name}</td>
-                        <td className="p-2 text-right text-text-primary dark:text-dark-text">{loc.count}</td>
-                        <td className="p-2 text-right text-text-muted">{loc.avgDuration}min</td>
-                        <td className="p-2 text-right text-ev-success">¥{loc.avgCost}</td>
+                      <tr key={loc.name} className="border-b border-border-subtle/50 last:border-0">
+                        <td className="p-2.5 text-text-bright font-medium">{loc.name}</td>
+                        <td className="p-2.5 text-right font-mono-data text-nexus-cyan">{loc.count}</td>
+                        <td className="p-2.5 text-right font-mono-data text-text-mid">{loc.avgDuration}m</td>
+                        <td className="p-2.5 text-right font-mono-data text-nexus-green">¥{loc.avgCost}</td>
                       </tr>
                     ))}
                   </tbody>
