@@ -2,9 +2,71 @@ import { useEffect } from "react";
 import { useChargingStore } from "../store/useChargingStore.ts";
 import type { ChargingRecord } from "../types/index.ts";
 
-const IMPORT_FLAG = "ev_gravity_auto_import_2026_03";
+const IMPORT_FLAG = "ev_gravity_auto_import_2026_v2";
 
 const SEED_RECORDS: ChargingRecord[] = [
+  // --- Estimated from Google Photos screenshots (Jan-Feb) ---
+  {
+    id: "import-20260111-0917",
+    startTime: "2026-01-11T09:17:00",
+    endTime: "2026-01-11T12:10:00",
+    startBattery: 54,
+    endBattery: 83,
+    startRange: 61,
+    endRange: 95,
+    odometer: 52231,
+    efficiency: 5.4,
+    chargedKwh: 8.7,
+    cost: 270,
+    duration: 173,
+    chargeSpeed: 3.02,
+    locationName: "充電スポット",
+    voltage: 200,
+    amperage: 15,
+    kw: 3,
+    startedAt: 1768090620000,
+  },
+  {
+    id: "import-20260129-0800",
+    startTime: "2026-01-29T08:00:00",
+    endTime: "2026-01-29T13:48:00",
+    startBattery: 25,
+    endBattery: 83,
+    startRange: 30,
+    endRange: 112,
+    odometer: 52690,
+    efficiency: 5.5,
+    chargedKwh: 17.4,
+    cost: 539,
+    duration: 348,
+    chargeSpeed: 3.0,
+    locationName: "充電スポット",
+    voltage: 200,
+    amperage: 15,
+    kw: 3,
+    startedAt: 1769641200000,
+  },
+  {
+    id: "import-20260206-0900",
+    startTime: "2026-02-06T09:00:00",
+    endTime: "2026-02-06T15:12:00",
+    startBattery: 23,
+    endBattery: 85,
+    startRange: 28,
+    endRange: 100,
+    odometer: 52835,
+    efficiency: 5.7,
+    chargedKwh: 18.6,
+    cost: 577,
+    duration: 372,
+    chargeSpeed: 3.0,
+    locationName: "充電スポット",
+    voltage: 200,
+    amperage: 15,
+    kw: 3,
+    startedAt: 1770336000000,
+  },
+  // --- From ZIP photos (March, confirmed data) ---
   {
     id: "import-20260311-0847",
     startTime: "2026-03-11T08:47:00",
