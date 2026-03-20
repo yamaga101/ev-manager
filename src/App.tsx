@@ -15,6 +15,7 @@ import { useChargingStore } from "./store/useChargingStore.ts";
 import { useSettingsStore } from "./store/useSettingsStore.ts";
 import { useToastStore } from "./store/useToastStore.ts";
 import { useServiceWorker } from "./hooks/useServiceWorker.ts";
+import { useAutoImport } from "./hooks/useAutoImport.ts";
 import { retryQueue } from "./utils/gas-sync.ts";
 import { getTranslations } from "./i18n/index.ts";
 import type { TabId, ChargingRecord } from "./types/index.ts";
@@ -42,6 +43,7 @@ export default function App() {
 
   const showToast = useToastStore((s) => s.showToast);
   const { needRefresh, update, dismiss } = useServiceWorker();
+  useAutoImport();
 
   const t = getTranslations(lang);
 
