@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.5.0";
+var GAS_VERSION = "4.5.3";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -38,7 +38,11 @@ function doPost(e) {
 
     switch (payload.type) {
       case "charging":
+      case "snapshot":
         writeCharging(payload);
+        break;
+      case "patch":
+        patchCharging(payload);
         break;
       case "maintenance":
         writeMaintenance(payload);
@@ -86,23 +90,53 @@ function writeCharging(p) {
   if (idExistsInColumn(sheet, 2, p.id)) return;
 
   sheet.appendRow([
-    new Date(),       // Timestamp
-    p.id,             // ID
-    p.status,         // Status
-    p.startTime,      // Start Time
-    p.endTime,        // End Time
-    p.location,       // Location
-    p.startOdometer,  // Start Odo
-    p.startSoC,       // Start SoC
-    p.startRange,     // Start Range
-    p.endSoC,         // End SoC
-    p.endRange,       // End Range
-    p.addedKwh,       // Added kWh
-    p.cost,           // Cost
-    p.efficiency,     // Efficiency
-    "",               // Duration (mins) - calculated client-side
-    "charging",       // Record Type
+    new Date(),                    // Timestamp
+    p.id,                          // ID
+    p.status || "",                // Status
+    p.startTime || "",             // Start Time
+    p.endTime || "",               // End Time
+    p.location || "",              // Location
+    p.startOdometer || "",         // Start Odo
+    p.startSoC || "",              // Start SoC
+    p.startRange || "",            // Start Range
+    p.endSoC || "",                // End SoC
+    p.endRange || "",              // End Range
+    p.addedKwh || "",              // Added kWh
+    p.cost || "",                  // Cost
+    p.efficiency || "",            // Efficiency
+    "",                            // Duration (mins)
+    p.recordType || "charging",    // Record Type
+    p.fileName || "",              // FileName
+    p.tripMeter || "",             // TripMeter
+    p.acOffRange || "",            // AC_OFF_Range
+    p.chargingState || "",         // ChargingState
+    p.vehicleTime || "",           // VehicleTime
+    p.memo || "",                  // Memo
   ]);
+}
+
+/**
+ * Patch specific fields on an existing row by ID.
+ * Only non-empty fields in the payload are updated.
+ */
+function patchCharging(p) {
+  var sheet = getOrCreateSheet(CHARGING_SHEET, CHARGING_HEADERS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+
+  var ids = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(p.id)) {
+      var row = i + 2;
+      // Column map: L=12(kWh), I=9(StartRange), K=11(EndRange), N=14(Efficiency)
+      if (p.addedKwh) sheet.getRange(row, 12).setValue(p.addedKwh);
+      if (p.startRange) sheet.getRange(row, 9).setValue(p.startRange);
+      if (p.endRange) sheet.getRange(row, 11).setValue(p.endRange);
+      if (p.efficiency) sheet.getRange(row, 14).setValue(p.efficiency);
+      if (p.memo) sheet.getRange(row, 22).setValue(p.memo);
+      return;
+    }
+  }
 }
 
 function writeMaintenance(p) {

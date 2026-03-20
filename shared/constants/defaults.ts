@@ -1,4 +1,4 @@
-export const APP_VERSION = "4.5.2";
+export const APP_VERSION = "4.5.3";
 
 export const PRE_CONFIGURED_GAS_URL =
   "https://script.google.com/macros/s/AKfycbwtU2yzzRnHLkiI1ebAJ1bDCvq0K6_v7Yi94A1Xm13mEzq0KzGIHr512FzV1O53k0wcRA/exec";
