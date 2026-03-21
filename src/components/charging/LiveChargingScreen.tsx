@@ -38,7 +38,6 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
   const session = useChargingStore((s) => s.activeSession)!;
   const addRecord = useChargingStore((s) => s.addRecord);
   const clearSession = useChargingStore((s) => s.clearSession);
-  const addToQueue = useChargingStore((s) => s.addToQueue);
   const settings = useSettingsStore((s) => s.settings);
   const showToast = useToastStore((s) => s.showToast);
   const geminiApiKey = settings.geminiApiKey ?? "";
@@ -152,7 +151,6 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       if (success) {
         showToast(t.toastSavedSent, "success");
       } else {
-        addToQueue(payload);
         showToast(t.toastSavedQueued, "info");
       }
     } else {

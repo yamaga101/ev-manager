@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense, useRef } from "react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { ExternalLink, HelpCircle } from "lucide-react";
 import { HelpPanel } from "./components/help/HelpPanel.tsx";
 import { BottomNav } from "./components/ui/BottomNav.tsx";
@@ -16,7 +16,7 @@ import { useSettingsStore } from "./store/useSettingsStore.ts";
 import { useToastStore } from "./store/useToastStore.ts";
 import { useServiceWorker } from "./hooks/useServiceWorker.ts";
 import { useAutoImport } from "./hooks/useAutoImport.ts";
-import { retryQueue } from "./utils/gas-sync.ts";
+import { useSyncStore } from "./store/useSyncStore.ts";
 import { getTranslations } from "./i18n/index.ts";
 import type { TabId, ChargingRecord } from "./types/index.ts";
 
@@ -32,8 +32,10 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const activeSession = useChargingStore((s) => s.activeSession);
-  const offlineQueue = useChargingStore((s) => s.offlineQueue);
-  const setQueue = useChargingStore((s) => s.setQueue);
+  const legacyQueue = useChargingStore((s) => s.offlineQueue);
+  const setLegacyQueue = useChargingStore((s) => s.setQueue);
+  const outboxCount = useSyncStore((s) => s.outbox.length);
+  const importLegacyQueue = useSyncStore((s) => s.importLegacyQueue);
 
   const lang = useSettingsStore((s) => s.lang);
   const setLang = useSettingsStore((s) => s.setLang);
@@ -82,21 +84,34 @@ export default function App() {
     }
   }, [theme]);
 
-  // Offline queue retry
-  const retryOfflineQueue = useCallback(async () => {
-    if (offlineQueue.length === 0 || !navigator.onLine || !gasUrl) return;
-    const { remaining, sentCount } = await retryQueue(gasUrl, offlineQueue);
-    setQueue(remaining);
-    if (sentCount > 0) {
-      showToast(t.toastQueueSent.replace("{n}", String(sentCount)), "success");
-    }
-  }, [offlineQueue, gasUrl, setQueue, showToast, t]);
-
+  // Migrate legacy offline queue to sync outbox (one-time)
+  const legacyMigratedRef = useRef(false);
   useEffect(() => {
-    window.addEventListener("online", retryOfflineQueue);
-    retryOfflineQueue();
-    return () => window.removeEventListener("online", retryOfflineQueue);
-  }, [retryOfflineQueue]);
+    if (!legacyMigratedRef.current && legacyQueue.length > 0) {
+      importLegacyQueue(legacyQueue);
+      setLegacyQueue([]);
+      legacyMigratedRef.current = true;
+    }
+  }, [legacyQueue, importLegacyQueue, setLegacyQueue]);
+
+  // Outbox retry: on online event + periodic (60s)
+  useEffect(() => {
+    const tryFlush = async () => {
+      const { outbox, flushOutbox } = useSyncStore.getState();
+      if (outbox.length === 0 || !navigator.onLine || !gasUrl) return;
+      const { ackedCount } = await flushOutbox(gasUrl);
+      if (ackedCount > 0) {
+        showToast(t.toastQueueSent.replace("{n}", String(ackedCount)), "success");
+      }
+    };
+    window.addEventListener("online", tryFlush);
+    tryFlush();
+    const interval = setInterval(tryFlush, 60000);
+    return () => {
+      window.removeEventListener("online", tryFlush);
+      clearInterval(interval);
+    };
+  }, [gasUrl, showToast, t]);
 
   const handleChargingComplete = (record: ChargingRecord) => {
     setCompletionRecord(record);
@@ -183,10 +198,10 @@ export default function App() {
           <span>{gasUrl ? "GAS:LINKED" : "GAS:NONE"}</span>
           <span className="text-border-subtle">|</span>
           <span>PWA:ACTIVE</span>
-          {offlineQueue.length > 0 && (
+          {outboxCount > 0 && (
             <>
               <span className="text-border-subtle">|</span>
-              <span className="text-nexus-warning">QUEUE:{offlineQueue.length}</span>
+              <span className="text-nexus-warning">SYNC:{outboxCount}</span>
             </>
           )}
         </div>

@@ -104,20 +104,25 @@ export function buildDriveLogGasPayload(record: DriveLogRecord): GasPayload {
 export async function sendToGas(
   gasUrl: string,
   payload: GasPayload,
+  idempotencyKey?: string,
 ): Promise<boolean> {
   // Enforce HTTPS for security
   if (!gasUrl.startsWith("https://")) {
     throw new Error("GAS URL must use HTTPS protocol");
   }
 
+  const body = idempotencyKey
+    ? { ...payload, idempotencyKey }
+    : payload;
+
   try {
-    await fetch(gasUrl, {
+    const response = await fetch(gasUrl, {
       method: "POST",
-      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=UTF-8" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
-    return true;
+    const result = await response.json();
+    return result.ok === true;
   } catch {
     return false;
   }

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useVehicleStore } from "../../store/useVehicleStore.ts";
-import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import { generateId } from "../../utils/formatting.ts";
-import { sendToGas, buildInsuranceGasPayload } from "../../utils/gas-sync.ts";
+import { buildInsuranceGasPayload } from "../../utils/gas-sync.ts";
 import type { InsuranceRecord } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -16,9 +16,9 @@ interface AddInsuranceFormProps {
 
 export function AddInsuranceForm({ onClose, t }: AddInsuranceFormProps) {
   const addInsurance = useVehicleStore((s) => s.addInsurance);
-  const addToQueue = useChargingStore((s) => s.addToQueue);
   const gasUrl = useSettingsStore((s) => s.settings.gasUrl);
   const showToast = useToastStore((s) => s.showToast);
+  const syncSend = useSyncStore((s) => s.syncSend);
 
   const [provider, setProvider] = useState("");
   const [policyNumber, setPolicyNumber] = useState("");
@@ -51,8 +51,7 @@ export function AddInsuranceForm({ onClose, t }: AddInsuranceFormProps) {
 
     if (gasUrl) {
       const payload = buildInsuranceGasPayload(record);
-      const sent = await sendToGas(gasUrl, payload);
-      if (!sent) addToQueue(payload);
+      await syncSend(gasUrl, payload);
     }
 
     showToast(t.toastInsuranceAdded, "success");

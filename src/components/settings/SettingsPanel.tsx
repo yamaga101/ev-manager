@@ -18,6 +18,7 @@ import {
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useLocationStore } from "../../store/useLocationStore.ts";
 import { useChargingStore } from "../../store/useChargingStore.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
 import { VEHICLE_PRESETS, SPREADSHEET_URL, APP_VERSION } from "../../constants/defaults.ts";
 import { exportJson, importJson } from "../../utils/json-io.ts";
@@ -43,7 +44,7 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
 
   const history = useChargingStore((s) => s.history);
   const importRecords = useChargingStore((s) => s.importRecords);
-  const offlineQueue = useChargingStore((s) => s.offlineQueue);
+  const outbox = useSyncStore((s) => s.outbox);
   const showToast = useToastStore((s) => s.showToast);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -388,10 +389,10 @@ export function SettingsPanel({ t }: SettingsPanelProps) {
       </section>
 
       {/* Offline Queue Status */}
-      {offlineQueue.length > 0 && (
+      {outbox.length > 0 && (
         <section className="glass-panel p-3 rounded-xl border-nexus-warning/20">
           <div className="text-nexus-warning text-sm font-medium flex items-center gap-2">
-            <WifiOff size={14} /> {t.offlineQueue}: {offlineQueue.length} {t.pendingItems}
+            <WifiOff size={14} /> {t.offlineQueue}: {outbox.length} {t.pendingItems}
           </div>
           <p className="text-[10px] text-text-dim mt-1">{t.autoSendOnline}</p>
         </section>

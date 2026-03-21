@@ -259,3 +259,17 @@ export interface ChargeSpeedBadge {
   label: string;
   color: string;
 }
+
+// --- Sync Outbox ---
+export type SyncStatus = "pending" | "sending" | "acked" | "failed";
+
+export interface SyncEnvelope {
+  envelopeId: string;
+  idempotencyKey: string;
+  payload: GasPayload;
+  status: SyncStatus;
+  retryCount: number;
+  lastError?: string;
+  createdAt: string;
+  lastAttemptAt?: string;
+}

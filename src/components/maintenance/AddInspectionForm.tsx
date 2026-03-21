@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { useMaintenanceStore } from "../../store/useMaintenanceStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
-import { buildInspectionGasPayload, sendToGas } from "../../utils/gas-sync.ts";
+import { buildInspectionGasPayload } from "../../utils/gas-sync.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import type { InspectionRecord } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -29,6 +30,7 @@ export function AddInspectionForm({ onClose, t }: AddInspectionFormProps) {
   const addInspection = useMaintenanceStore((s) => s.addInspection);
   const showToast = useToastStore((s) => s.showToast);
   const gasUrl = useSettingsStore((s) => s.settings.gasUrl);
+  const syncSend = useSyncStore((s) => s.syncSend);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -58,12 +60,10 @@ export function AddInspectionForm({ onClose, t }: AddInspectionFormProps) {
 
     addInspection(record);
 
-    // Attempt GAS sync (fire-and-forget)
+    // Attempt GAS sync via outbox
     if (gasUrl) {
       const payload = buildInspectionGasPayload(record);
-      sendToGas(gasUrl, payload).catch(() => {
-        // Sync failure is non-critical for inspection records
-      });
+      syncSend(gasUrl, payload);
     }
 
     showToast(t.toastInspectionAdded, "success");

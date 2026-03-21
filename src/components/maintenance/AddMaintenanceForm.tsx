@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { useMaintenanceStore } from "../../store/useMaintenanceStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
-import { buildMaintenanceGasPayload, sendToGas } from "../../utils/gas-sync.ts";
+import { buildMaintenanceGasPayload } from "../../utils/gas-sync.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import type { MaintenanceCategory, MaintenanceRecord } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -41,6 +42,7 @@ export function AddMaintenanceForm({ onClose, t }: AddMaintenanceFormProps) {
   const addMaintenance = useMaintenanceStore((s) => s.addMaintenance);
   const showToast = useToastStore((s) => s.showToast);
   const gasUrl = useSettingsStore((s) => s.settings.gasUrl);
+  const syncSend = useSyncStore((s) => s.syncSend);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -72,12 +74,10 @@ export function AddMaintenanceForm({ onClose, t }: AddMaintenanceFormProps) {
 
     addMaintenance(record);
 
-    // Attempt GAS sync (fire-and-forget)
+    // Attempt GAS sync via outbox
     if (gasUrl) {
       const payload = buildMaintenanceGasPayload(record);
-      sendToGas(gasUrl, payload).catch(() => {
-        // Sync failure is non-critical for maintenance records
-      });
+      syncSend(gasUrl, payload);
     }
 
     showToast(t.toastMaintenanceAdded, "success");

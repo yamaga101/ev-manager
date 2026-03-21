@@ -21,4 +21,6 @@ export type {
   HistorySubTab,
   MeterExtractResult,
   ConfidenceLevel,
+  SyncStatus,
+  SyncEnvelope,
 } from "../../shared/types/index.ts";

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Plus, Trash2, MapPin, ArrowRight, Navigation, X } from "lucide-react";
 import { useDriveLogStore } from "../../store/useDriveLogStore.ts";
-import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import { generateId } from "../../utils/formatting.ts";
-import { sendToGas, buildDriveLogGasPayload } from "../../utils/gas-sync.ts";
+import { buildDriveLogGasPayload } from "../../utils/gas-sync.ts";
 import type { DriveLogRecord } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -72,8 +72,8 @@ export function DriveLogList({ t }: DriveLogListProps) {
   const records = useDriveLogStore((s) => s.records);
   const addRecord = useDriveLogStore((s) => s.addRecord);
   const deleteRecord = useDriveLogStore((s) => s.deleteRecord);
-  const addToQueue = useChargingStore((s) => s.addToQueue);
   const gasUrl = useSettingsStore((s) => s.settings.gasUrl);
+  const syncSend = useSyncStore((s) => s.syncSend);
   const showToast = useToastStore((s) => s.showToast);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -124,8 +124,7 @@ export function DriveLogList({ t }: DriveLogListProps) {
             addRecord(record);
             if (gasUrl) {
               const payload = buildDriveLogGasPayload(record);
-              const sent = await sendToGas(gasUrl, payload);
-              if (!sent) addToQueue(payload);
+              await syncSend(gasUrl, payload);
             }
             showToast(t.toastDriveLogAdded, "success");
           }}

@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.5.8";
+var GAS_VERSION = "4.5.9";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -28,12 +28,21 @@ var GAS_VERSION = "4.5.8";
  * @returns {GoogleAppsScript.Content.TextOutput}
  */
 function doPost(e) {
+  var lock = LockService.getScriptLock();
   try {
+    lock.waitLock(10000);
+
     var raw = e.postData && e.postData.contents ? e.postData.contents : "{}";
     var payload = JSON.parse(raw);
 
     if (!payload.type) {
       return jsonResponse({ ok: false, error: "missing type" });
+    }
+
+    // Idempotency: skip if this key was already processed
+    var idempotencyKey = payload.idempotencyKey || "";
+    if (idempotencyKey && isKeyProcessed(idempotencyKey)) {
+      return jsonResponse({ ok: true, type: payload.type, id: payload.id, duplicate: true });
     }
 
     switch (payload.type) {
@@ -63,9 +72,16 @@ function doPost(e) {
         return jsonResponse({ ok: false, error: "unknown type: " + payload.type });
     }
 
+    // Record idempotency key after successful write
+    if (idempotencyKey) {
+      recordIdempotencyKey(idempotencyKey);
+    }
+
     return jsonResponse({ ok: true, type: payload.type, id: payload.id });
   } catch (err) {
     return jsonResponse({ ok: false, error: String(err) });
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -389,6 +405,43 @@ function idExistsInColumn(sheet, col, id) {
     if (String(ids[i][0]) === String(id)) return true;
   }
   return false;
+}
+
+/**
+ * Returns true if the given idempotency key has been processed before.
+ */
+function isKeyProcessed(key) {
+  var props = PropertiesService.getScriptProperties();
+  return props.getProperty("idem:" + key) !== null;
+}
+
+/**
+ * Records an idempotency key to prevent duplicate processing.
+ */
+function recordIdempotencyKey(key) {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty("idem:" + key, new Date().toISOString());
+}
+
+/**
+ * Cleanup idempotency keys older than 30 days.
+ * Run manually or via a daily time-driven trigger.
+ */
+function cleanupOldIdempotencyKeys() {
+  var props = PropertiesService.getScriptProperties();
+  var all = props.getProperties();
+  var cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  var deleted = 0;
+  for (var key in all) {
+    if (key.indexOf("idem:") === 0) {
+      var date = new Date(all[key]);
+      if (date < cutoff) {
+        props.deleteProperty(key);
+        deleted++;
+      }
+    }
+  }
+  Logger.log("Cleaned up " + deleted + " old idempotency keys.");
 }
 
 /**

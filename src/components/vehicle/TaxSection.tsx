@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Plus, Trash2, Calendar, Receipt, Check, X } from "lucide-react";
 import { useVehicleStore } from "../../store/useVehicleStore.ts";
-import { useChargingStore } from "../../store/useChargingStore.ts";
 import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
+import { useSyncStore } from "../../store/useSyncStore.ts";
 import { generateId } from "../../utils/formatting.ts";
-import { sendToGas, buildTaxGasPayload } from "../../utils/gas-sync.ts";
+import { buildTaxGasPayload } from "../../utils/gas-sync.ts";
 import type { TaxRecord, TaxType } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -174,9 +174,9 @@ export function TaxSection({ t }: TaxSectionProps) {
 
 function AddTaxForm({ onClose, t }: { onClose: () => void; t: Translations }) {
   const addTax = useVehicleStore((s) => s.addTax);
-  const addToQueue = useChargingStore((s) => s.addToQueue);
   const gasUrl = useSettingsStore((s) => s.settings.gasUrl);
   const showToast = useToastStore((s) => s.showToast);
+  const syncSend = useSyncStore((s) => s.syncSend);
 
   const [taxType, setTaxType] = useState<TaxType>("automobile");
   const [amount, setAmount] = useState("");
@@ -203,8 +203,7 @@ function AddTaxForm({ onClose, t }: { onClose: () => void; t: Translations }) {
 
     if (gasUrl) {
       const payload = buildTaxGasPayload(record);
-      const sent = await sendToGas(gasUrl, payload);
-      if (!sent) addToQueue(payload);
+      await syncSend(gasUrl, payload);
     }
 
     showToast(t.toastTaxAdded, "success");
