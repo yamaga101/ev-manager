@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.5.3";
+var GAS_VERSION = "4.5.4";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -73,7 +73,7 @@ function doPost(e) {
 // Per-type writers
 // ---------------------------------------------------------------------------
 
-var CHARGING_SHEET = "Charging_Logs";
+var CHARGING_SHEET = "充電ログ";
 var CHARGING_HEADERS = [
   "Timestamp", "ID", "Status", "Start Time", "End Time",
   "Location", "Start Odo", "Start SoC", "Start Range",
