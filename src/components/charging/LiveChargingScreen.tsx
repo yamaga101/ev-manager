@@ -253,27 +253,34 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
           onChange={setEndBattery}
           error={validationErrors.endBattery}
         />
-        <SmartNumberInput
-          label={t.rangeEnd}
-          value={endRange}
-          unit="km"
-          steps={[-10, -1, 1, 10]}
-          min={0}
-          max={1000}
-          onChange={setEndRange}
-          error={validationErrors.endRange}
-        />
-        {(session.startRangeAcOn != null || endRangeAcOn != null) && (
-          <SmartNumberInput
-            label={t.rangeAcOn}
-            value={endRangeAcOn ?? 0}
-            unit="km"
-            steps={[-10, -1, 1, 10]}
-            min={0}
-            max={1000}
-            onChange={(v) => setEndRangeAcOn(v || undefined)}
-          />
-        )}
+        <div>
+          <div className="text-text-dim text-[9px] font-medium uppercase tracking-[0.15em] pl-1 mb-0.5">
+            {t.rangeEnd}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <SmartNumberInput
+              label="AC OFF"
+              value={endRange}
+              unit="km"
+              steps={[-10, 10]}
+              min={0}
+              max={1000}
+              onChange={setEndRange}
+              error={validationErrors.endRange}
+              compact
+            />
+            <SmartNumberInput
+              label="AC ON"
+              value={endRangeAcOn ?? 0}
+              unit="km"
+              steps={[-10, 10]}
+              min={0}
+              max={1000}
+              onChange={(v) => setEndRangeAcOn(v || undefined)}
+              compact
+            />
+          </div>
+        </div>
       </div>
 
       <button

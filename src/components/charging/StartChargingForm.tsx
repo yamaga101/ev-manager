@@ -117,24 +117,40 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
       )}
       <Odometer value={odometer} onChange={handleOdometerChange} label={t.odometer} />
 
-      <div className="flex flex-col gap-2">
-        <SmartNumberInput
-          label={t.batteryPct}
-          value={startBattery}
-          unit="%"
-          min={0}
-          max={100}
-          onChange={setStartBattery}
-        />
-        <SmartNumberInput
-          label={t.rangeKm}
-          value={startRange}
-          unit="km"
-          steps={[-10, -1, 1, 10]}
-          min={0}
-          max={1000}
-          onChange={setStartRange}
-        />
+      <SmartNumberInput
+        label={t.batteryPct}
+        value={startBattery}
+        unit="%"
+        min={0}
+        max={100}
+        onChange={setStartBattery}
+      />
+      <div>
+        <div className="text-text-dim text-[9px] font-medium uppercase tracking-[0.15em] pl-1 mb-0.5">
+          {t.rangeKm}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <SmartNumberInput
+            label="AC OFF"
+            value={startRange}
+            unit="km"
+            steps={[-10, 10]}
+            min={0}
+            max={1000}
+            onChange={setStartRange}
+            compact
+          />
+          <SmartNumberInput
+            label="AC ON"
+            value={startRangeAcOn ?? 0}
+            unit="km"
+            steps={[-10, 10]}
+            min={0}
+            max={1000}
+            onChange={(v) => setStartRangeAcOn(v || undefined)}
+            compact
+          />
+        </div>
       </div>
 
       <SmartNumberInput
