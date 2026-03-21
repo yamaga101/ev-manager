@@ -5,7 +5,7 @@
  * corresponding sheet in the active spreadsheet.
  *
  * Sheet layout per type:
- *   Charging_Logs : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | End SoC | End Range | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo | Start Range AC ON | End Range AC ON
+ *   Charging_Logs : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | Start Range AC ON | End SoC | End Range | End Range AC ON | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo
  *   maintenance   : id | date | category | description | cost | odometer | nextDueDate | memo
  *   inspection    : id | date | inspectionType | odometer | cost | soh | nextDueDate | findings
  *   insurance     : id | provider | policyNumber | insuranceType | coverageSummary | premium | startDate | endDate | memo
@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.5.5";
+var GAS_VERSION = "4.5.8";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -76,12 +76,11 @@ function doPost(e) {
 var CHARGING_SHEET = "充電ログ";
 var CHARGING_HEADERS = [
   "Timestamp", "ID", "Status", "Start Time", "End Time",
-  "Location", "Start Odo", "Start SoC", "Start Range",
-  "End SoC", "End Range", "Added kWh", "Cost",
+  "Location", "Start Odo", "Start SoC", "Start Range", "Start Range AC ON",
+  "End SoC", "End Range", "End Range AC ON", "Added kWh", "Cost",
   "Efficiency", "Duration (mins)", "Record Type",
   "FileName", "TripMeter", "AC_OFF_Range",
   "ChargingState", "VehicleTime", "Memo",
-  "Start Range AC ON", "End Range AC ON",
 ];
 
 function writeCharging(p) {
@@ -100,8 +99,10 @@ function writeCharging(p) {
     p.startOdometer || "",         // Start Odo
     p.startSoC || "",              // Start SoC
     p.startRange || "",            // Start Range
+    p.startRangeAcOn || "",        // Start Range AC ON
     p.endSoC || "",                // End SoC
     p.endRange || "",              // End Range
+    p.endRangeAcOn || "",          // End Range AC ON
     p.addedKwh || "",              // Added kWh
     p.cost || "",                  // Cost
     p.efficiency || "",            // Efficiency
@@ -113,8 +114,6 @@ function writeCharging(p) {
     p.chargingState || "",         // ChargingState
     p.vehicleTime || "",           // VehicleTime
     p.memo || "",                  // Memo
-    p.startRangeAcOn || "",        // Start Range AC ON
-    p.endRangeAcOn || "",          // End Range AC ON
   ]);
 }
 
@@ -131,12 +130,14 @@ function patchCharging(p) {
   for (var i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(p.id)) {
       var row = i + 2;
-      // Column map: L=12(kWh), I=9(StartRange), K=11(EndRange), N=14(Efficiency)
-      if (p.addedKwh) sheet.getRange(row, 12).setValue(p.addedKwh);
+      // Column map: N=14(kWh), I=9(StartRange), J=10(StartRangeAcOn), L=12(EndRange), M=13(EndRangeAcOn), P=16(Efficiency), X=24(Memo)
+      if (p.addedKwh) sheet.getRange(row, 14).setValue(p.addedKwh);
       if (p.startRange) sheet.getRange(row, 9).setValue(p.startRange);
-      if (p.endRange) sheet.getRange(row, 11).setValue(p.endRange);
-      if (p.efficiency) sheet.getRange(row, 14).setValue(p.efficiency);
-      if (p.memo) sheet.getRange(row, 22).setValue(p.memo);
+      if (p.startRangeAcOn) sheet.getRange(row, 10).setValue(p.startRangeAcOn);
+      if (p.endRange) sheet.getRange(row, 12).setValue(p.endRange);
+      if (p.endRangeAcOn) sheet.getRange(row, 13).setValue(p.endRangeAcOn);
+      if (p.efficiency) sheet.getRange(row, 16).setValue(p.efficiency);
+      if (p.memo) sheet.getRange(row, 24).setValue(p.memo);
       return;
     }
   }
@@ -257,8 +258,10 @@ function consolidateSheets() {
             "",                  // Start Odo
             "",                  // Start SoC
             obj.startRange || "", // Start Range
+            "",                  // Start Range AC ON
             obj.endSoC || "",    // End SoC
             obj.endRange || "",  // End Range
+            "",                  // End Range AC ON
             "",                  // Added kWh
             obj.cost || "",      // Cost
             "",                  // Efficiency
@@ -299,8 +302,10 @@ function consolidateSheets() {
           row[4] || "",        // Start Odo (オドメーター)
           row[3] || "",        // Start SoC (バッテリー残量%)
           row[6] || "",        // Start Range (航続可能距離)
+          "",                  // Start Range AC ON
           "",                  // End SoC
           "",                  // End Range
+          "",                  // End Range AC ON
           "",                  // Added kWh
           "",                  // Cost
           row[7] || "",        // Efficiency (平均電費)
@@ -323,7 +328,7 @@ function consolidateSheets() {
   // --- 3. Add Record Type to existing Charging_Logs rows ---
   var lastRow = target.getLastRow();
   if (lastRow > 1) {
-    var typeCol = 16; // Column P = Record Type
+    var typeCol = 18; // Column R = Record Type
     var types = target.getRange(2, typeCol, lastRow - 1, 1).getValues();
     for (var k = 0; k < types.length; k++) {
       if (!types[k][0]) {

@@ -147,12 +147,31 @@ export function EditSessionModal({
             unit="%"
             onChange={(v) => handleChange("startBattery", v)}
           />
-          <SmartNumberInput
-            label={t.range}
-            value={Number(formData.startRange || 0)}
-            unit="km"
-            onChange={(v) => handleChange("startRange", v)}
-          />
+          <div>
+            <div className="text-text-muted text-[9px] font-medium uppercase tracking-[0.15em] pl-1 mb-0.5">
+              {t.rangeKm}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <SmartNumberInput
+                label="AC OFF"
+                value={Number(formData.startRange || 0)}
+                unit="km"
+                steps={[-10, 10]}
+                min={0} max={1000}
+                onChange={(v) => handleChange("startRange", v)}
+                compact
+              />
+              <SmartNumberInput
+                label="AC ON"
+                value={Number(formData.startRangeAcOn || 0)}
+                unit="km"
+                steps={[-10, 10]}
+                min={0} max={1000}
+                onChange={(v) => handleChange("startRangeAcOn", v)}
+                compact
+              />
+            </div>
+          </div>
         </div>
 
         <div className="p-3 border border-border dark:border-dark-border rounded-lg bg-surface-alt dark:bg-gray-800/50">
@@ -165,12 +184,31 @@ export function EditSessionModal({
             unit="%"
             onChange={(v) => handleChange("endBattery", v)}
           />
-          <SmartNumberInput
-            label={t.range}
-            value={Number(formData.endRange || 0)}
-            unit="km"
-            onChange={(v) => handleChange("endRange", v)}
-          />
+          <div>
+            <div className="text-text-muted text-[9px] font-medium uppercase tracking-[0.15em] pl-1 mb-0.5">
+              {t.rangeKm}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <SmartNumberInput
+                label="AC OFF"
+                value={Number(formData.endRange || 0)}
+                unit="km"
+                steps={[-10, 10]}
+                min={0} max={1000}
+                onChange={(v) => handleChange("endRange", v)}
+                compact
+              />
+              <SmartNumberInput
+                label="AC ON"
+                value={Number(formData.endRangeAcOn || 0)}
+                unit="km"
+                steps={[-10, 10]}
+                min={0} max={1000}
+                onChange={(v) => handleChange("endRangeAcOn", v)}
+                compact
+              />
+            </div>
+          </div>
         </div>
       </div>
     </Modal>
