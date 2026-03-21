@@ -9,6 +9,7 @@ interface LocationState {
   addLocation: (loc: Omit<ChargingLocation, "id">) => void;
   updateLocation: (id: string, loc: Omit<ChargingLocation, "id">) => void;
   removeLocation: (id: string) => void;
+  markLocationUsed: (id: string) => void;
   initFromLegacy: (locations: ChargingLocation[]) => void;
 }
 
@@ -16,24 +17,24 @@ export const useLocationStore = create<LocationState>()(
   persist(
     (set) => ({
       locations: [],
-
       addLocation: (loc) =>
         set((state) => ({
           locations: [...state.locations, { ...loc, id: generateId() }],
         })),
-
       updateLocation: (id, loc) =>
         set((state) => ({
-          locations: state.locations.map((l) =>
-            l.id === id ? { ...loc, id } : l,
-          ),
+          locations: state.locations.map((l) => (l.id === id ? { ...loc, id } : l)),
         })),
-
       removeLocation: (id) =>
         set((state) => ({
           locations: state.locations.filter((l) => l.id !== id),
         })),
-
+      markLocationUsed: (id) =>
+        set((state) => ({
+          locations: state.locations.map((l) =>
+            l.id === id ? { ...l, lastUsedAt: new Date().toISOString() } : l,
+          ),
+        })),
       initFromLegacy: (locations) => set({ locations }),
     }),
     {
@@ -52,7 +53,7 @@ export const useLocationStore = create<LocationState>()(
         }
         return _persisted;
       },
-      version: 1,
+      version: 2,
     },
   ),
 );

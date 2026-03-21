@@ -4,6 +4,10 @@ export interface ChargingLocation {
   voltage: number;
   amperage: number;
   kw: number;
+  lat?: number;
+  lng?: number;
+  radiusMeters?: number;
+  lastUsedAt?: string;
 }
 
 export interface ChargingSession {
@@ -45,6 +49,7 @@ export interface VehicleSettings {
   nightRate: number;
   useNightRate: boolean;
   gasUrl: string;
+  gasSharedToken?: string;
   geminiApiKey?: string;
 }
 
@@ -112,23 +117,23 @@ export interface InspectionGasPayload {
 }
 
 export type MaintenanceCategory =
-  | "tire"        // タイヤ
-  | "brake"       // ブレーキ
-  | "wiper"       // ワイパー
-  | "battery12v"  // 12Vバッテリー
-  | "coolant"     // 冷却液
-  | "inspection"  // 車検・点検
-  | "wash"        // 洗車
-  | "other";      // その他
+  | "tire"
+  | "brake"
+  | "wiper"
+  | "battery12v"
+  | "coolant"
+  | "inspection"
+  | "wash"
+  | "other";
 
 export interface MaintenanceRecord {
   id: string;
-  date: string;             // ISO date
+  date: string;
   category: MaintenanceCategory;
   description: string;
   cost: number;
   odometer?: number;
-  nextDueDate?: string;     // next maintenance due
+  nextDueDate?: string;
   nextDueOdometer?: number;
   memo?: string;
   createdAt: string;
@@ -137,33 +142,31 @@ export interface MaintenanceRecord {
 export interface InspectionRecord {
   id: string;
   date: string;
-  type: "shaken" | "12month" | "6month"; // 車検, 12ヶ月点検, 6ヶ月点検
-  soh?: number;             // Battery SOH at inspection
+  type: "shaken" | "12month" | "6month";
+  soh?: number;
   odometer: number;
   cost: number;
-  nextDueDate: string;      // next inspection due
-  findings?: string;        // 所見
+  nextDueDate: string;
+  findings?: string;
   createdAt: string;
 }
 
-// --- Vehicle Registration ---
 export interface VehicleRegistration {
   plateNumber: string;
   vin: string;
   model: string;
   year: number;
   color: string;
-  expiryDate: string; // vehicle inspection expiry (ISO date)
+  expiryDate: string;
   purchaseDate?: string;
   memo?: string;
 }
 
-// --- Insurance ---
 export interface InsuranceRecord {
   id: string;
   provider: string;
   policyNumber: string;
-  type: "mandatory" | "voluntary"; // jibaiseki / nin-i
+  type: "mandatory" | "voluntary";
   coverageSummary: string;
   premium: number;
   startDate: string;
@@ -186,7 +189,6 @@ export interface InsuranceGasPayload {
   memo: string;
 }
 
-// --- Tax ---
 export type TaxType = "automobile" | "weight" | "env" | "other";
 
 export interface TaxRecord {
@@ -211,7 +213,6 @@ export interface TaxGasPayload {
   memo: string;
 }
 
-// --- Drive Log ---
 export interface DriveLogRecord {
   id: string;
   date: string;
@@ -220,7 +221,7 @@ export interface DriveLogRecord {
   distance: number;
   startOdometer: number;
   endOdometer: number;
-  efficiency?: number; // km/kWh
+  efficiency?: number;
   purpose?: string;
   memo?: string;
   createdAt: string;
@@ -240,13 +241,23 @@ export interface DriveLogGasPayload {
   memo: string;
 }
 
+export interface PingGasPayload {
+  type: "ping";
+}
+
 export type GasPayload =
   | ChargingGasPayload
   | MaintenanceGasPayload
   | InspectionGasPayload
   | InsuranceGasPayload
   | TaxGasPayload
-  | DriveLogGasPayload;
+  | DriveLogGasPayload
+  | PingGasPayload;
+
+export interface GasRequestOptions {
+  idempotencyKey?: string;
+  token?: string;
+}
 
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "ja";
@@ -260,7 +271,6 @@ export interface ChargeSpeedBadge {
   color: string;
 }
 
-// --- Sync Outbox ---
 export type SyncStatus = "pending" | "sending" | "acked" | "failed";
 
 export interface SyncEnvelope {

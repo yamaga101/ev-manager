@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { VehicleSettings, Language, Theme } from "../types/index.ts";
 import {
   PRE_CONFIGURED_GAS_URL,
+  DEFAULT_GAS_SHARED_TOKEN,
   DEFAULT_GEMINI_API_KEY,
   DEFAULT_BATTERY_CAPACITY,
   DEFAULT_ELECTRICITY_RATE,
@@ -37,23 +38,19 @@ export const useSettingsStore = create<SettingsState>()(
         nightRate: DEFAULT_NIGHT_RATE,
         useNightRate: false,
         gasUrl: PRE_CONFIGURED_GAS_URL,
+        gasSharedToken: DEFAULT_GAS_SHARED_TOKEN,
         geminiApiKey: DEFAULT_GEMINI_API_KEY,
       },
       lang: "en",
       theme: "system",
       onboardingDone: false,
-
       updateSettings: (partial) =>
         set((state) => ({
           settings: { ...state.settings, ...partial },
         })),
-
       setLang: (lang) => set({ lang }),
-
       setTheme: (theme) => set({ theme }),
-
       completeOnboarding: () => set({ onboardingDone: true }),
-
       initFromLegacy: (legacySettings, lang, onboardingDone) =>
         set((state) => ({
           settings: { ...state.settings, ...legacySettings },
@@ -70,7 +67,7 @@ export const useSettingsStore = create<SettingsState>()(
         onboardingDone: state.onboardingDone,
       }),
       migrate: (_persisted, version) => {
-        const state = _persisted as Record<string, unknown>;
+        const state = (_persisted ?? {}) as Record<string, unknown>;
         if (version === 0) {
           const legacyOnboarding = localStorage.getItem(STORAGE_KEY_ONBOARDING);
           const legacyLang = localStorage.getItem(STORAGE_KEY_LANG);
@@ -81,7 +78,6 @@ export const useSettingsStore = create<SettingsState>()(
           } catch {
             // ignore
           }
-
           return {
             settings: {
               batteryCapacity:
@@ -91,6 +87,8 @@ export const useSettingsStore = create<SettingsState>()(
               nightRate: legacySettings.nightRate || DEFAULT_NIGHT_RATE,
               useNightRate: legacySettings.useNightRate || false,
               gasUrl: legacySettings.gasUrl || PRE_CONFIGURED_GAS_URL,
+              gasSharedToken:
+                legacySettings.gasSharedToken || DEFAULT_GAS_SHARED_TOKEN,
               geminiApiKey: DEFAULT_GEMINI_API_KEY,
             },
             lang: (legacyLang as Language) || "en",
@@ -104,13 +102,30 @@ export const useSettingsStore = create<SettingsState>()(
             ...state,
             settings: {
               ...settings,
-              geminiApiKey: settings.geminiApiKey || DEFAULT_GEMINI_API_KEY,
+              gasSharedToken:
+                (settings.gasSharedToken as string | undefined) ||
+                DEFAULT_GAS_SHARED_TOKEN,
+              geminiApiKey:
+                (settings.geminiApiKey as string | undefined) ||
+                DEFAULT_GEMINI_API_KEY,
+            },
+          };
+        }
+        if (version === 2) {
+          const settings = (state.settings ?? {}) as Record<string, unknown>;
+          return {
+            ...state,
+            settings: {
+              ...settings,
+              gasSharedToken:
+                (settings.gasSharedToken as string | undefined) ||
+                DEFAULT_GAS_SHARED_TOKEN,
             },
           };
         }
         return _persisted;
       },
-      version: 2,
+      version: 3,
     },
   ),
 );

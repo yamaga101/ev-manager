@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EV Manager GAS Ping</title>
+    <style>
+      body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin: 24px; background: #0b1220; color: #d7e3ff; }
+      .card { max-width: 720px; margin: 0 auto; padding: 20px; border: 1px solid #2b3a55; border-radius: 16px; background: #121a2b; }
+      input, button, textarea { width: 100%; box-sizing: border-box; border-radius: 10px; border: 1px solid #3c537a; background: #0f1726; color: #d7e3ff; padding: 12px; }
+      button { cursor: pointer; font-weight: 700; }
+      button:hover { background: #12213a; }
+      label { display: block; margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #89a5d8; }
+      .ok { color: #7ef29a; }
+      .ng { color: #ff8e8e; }
+      .hint { font-size: 12px; color: #89a5d8; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>EV Manager GAS Ping</h1>
+      <p>Cross-origin smoke test for <code>response.json()</code> from GitHub Pages / installed PWA.</p>
+      <label for="gasUrl">GAS URL</label>
+      <input id="gasUrl" type="text" placeholder="https://script.google.com/.../exec" />
+      <label for="gasToken">Shared Token</label>
+      <input id="gasToken" type="password" placeholder="evm_..." />
+      <button id="run">POST / ping</button>
+      <p id="status"></p>
+      <label for="output">Response / Error</label>
+      <textarea id="output" rows="16" readonly></textarea>
+      <div class="hint">Reads <code>ev-settings-v3</code> from localStorage if present.</div>
+    </div>
+    <script>
+      const gasUrlEl = document.getElementById('gasUrl');
+      const gasTokenEl = document.getElementById('gasToken');
+      const outputEl = document.getElementById('output');
+      const statusEl = document.getElementById('status');
+      try {
+        const raw = localStorage.getItem('ev-settings-v3');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.state?.settings?.gasUrl) gasUrlEl.value = parsed.state.settings.gasUrl;
+          if (parsed?.state?.settings?.gasSharedToken) gasTokenEl.value = parsed.state.settings.gasSharedToken;
+        }
+      } catch {}
+
+      document.getElementById('run').addEventListener('click', async () => {
+        statusEl.textContent = 'Running...';
+        statusEl.className = '';
+        outputEl.value = '';
+        const body = {
+          type: 'ping',
+          token: gasTokenEl.value || undefined,
+        };
+        try {
+          const res = await fetch(gasUrlEl.value, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          outputEl.value = JSON.stringify(data, null, 2);
+          if (data?.ok === true) {
+            statusEl.textContent = 'PASS';
+            statusEl.className = 'ok';
+          } else {
+            statusEl.textContent = 'FAIL';
+            statusEl.className = 'ng';
+          }
+        } catch (err) {
+          outputEl.value = String(err && err.stack ? err.stack : err);
+          statusEl.textContent = 'FAIL';
+          statusEl.className = 'ng';
+        }
+      });
+    </script>
+  </body>
+</html>

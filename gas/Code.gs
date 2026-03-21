@@ -1,93 +1,28 @@
 /**
- * EV Charge Log - Google Apps Script backend v4.4.0
+ * EV Charge Log - Google Apps Script backend v4.5.9
  *
  * Receives POST requests from the PWA and writes records to the
  * corresponding sheet in the active spreadsheet.
  *
+ * Security hardening:
+ *   - Requires a shared token in payload.token
+ *   - Stores the shared token in Script Properties
+ *   - Creates a daily trigger for cleanupOldIdempotencyKeys if missing
+ *
  * Sheet layout per type:
- *   Charging_Logs : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | Start Range AC ON | End SoC | End Range | End Range AC ON | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo
- *   maintenance   : id | date | category | description | cost | odometer | nextDueDate | memo
- *   inspection    : id | date | inspectionType | odometer | cost | soh | nextDueDate | findings
- *   insurance     : id | provider | policyNumber | insuranceType | coverageSummary | premium | startDate | endDate | memo
- *   tax           : id | taxType | amount | dueDate | paidDate | fiscalYear | memo
- *   driveLog      : id | date | departure | destination | distance | startOdometer | endOdometer | efficiency | purpose | memo
- *
- * Idempotency: if the id already exists the row is skipped.
- *
- * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
+ *   charging     : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | Start Range AC ON | End SoC | End Range | End Range AC ON | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo
+ *   maintenance  : id | date | category | description | cost | odometer | nextDueDate | memo
+ *   inspection   : id | date | inspectionType | odometer | cost | soh | nextDueDate | findings
+ *   insurance    : id | provider | policyNumber | insuranceType | coverageSummary | premium | startDate | endDate | memo
+ *   tax          : id | taxType | amount | dueDate | paidDate | fiscalYear | memo
+ *   driveLog     : id | date | departure | destination | distance | startOdometer | endOdometer | efficiency | purpose | memo
  */
 
-var GAS_VERSION = "4.5.9";
-
-// ---------------------------------------------------------------------------
-// Entry point
-// ---------------------------------------------------------------------------
-
-/**
- * @param {GoogleAppsScript.Events.DoPost} e
- * @returns {GoogleAppsScript.Content.TextOutput}
- */
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(10000);
-
-    var raw = e.postData && e.postData.contents ? e.postData.contents : "{}";
-    var payload = JSON.parse(raw);
-
-    if (!payload.type) {
-      return jsonResponse({ ok: false, error: "missing type" });
-    }
-
-    // Idempotency: skip if this key was already processed
-    var idempotencyKey = payload.idempotencyKey || "";
-    if (idempotencyKey && isKeyProcessed(idempotencyKey)) {
-      return jsonResponse({ ok: true, type: payload.type, id: payload.id, duplicate: true });
-    }
-
-    switch (payload.type) {
-      case "charging":
-      case "snapshot":
-        writeCharging(payload);
-        break;
-      case "patch":
-        patchCharging(payload);
-        break;
-      case "maintenance":
-        writeMaintenance(payload);
-        break;
-      case "inspection":
-        writeInspection(payload);
-        break;
-      case "insurance":
-        writeInsurance(payload);
-        break;
-      case "tax":
-        writeTax(payload);
-        break;
-      case "driveLog":
-        writeDriveLog(payload);
-        break;
-      default:
-        return jsonResponse({ ok: false, error: "unknown type: " + payload.type });
-    }
-
-    // Record idempotency key after successful write
-    if (idempotencyKey) {
-      recordIdempotencyKey(idempotencyKey);
-    }
-
-    return jsonResponse({ ok: true, type: payload.type, id: payload.id });
-  } catch (err) {
-    return jsonResponse({ ok: false, error: String(err) });
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Per-type writers
-// ---------------------------------------------------------------------------
+var GAS_VERSION = "4.6.0";
+var SHARED_TOKEN_PROPERTY = "EV_MANAGER_SHARED_TOKEN";
+var IDEMPOTENCY_PREFIX = "idem:";
+var CLEANUP_TRIGGER_HANDLER = "cleanupOldIdempotencyKeys";
+var CLEANUP_TRIGGER_HOUR = 3;
 
 var CHARGING_SHEET = "充電ログ";
 var CHARGING_HEADERS = [
@@ -99,44 +34,168 @@ var CHARGING_HEADERS = [
   "ChargingState", "VehicleTime", "Memo",
 ];
 
+function doPost(e) {
+  try {
+    var raw = e.postData && e.postData.contents ? e.postData.contents : "{}";
+    var payload = JSON.parse(raw);
+
+    if (!payload.type) {
+      return jsonResponse({ ok: false, error: "missing type" });
+    }
+
+    var auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      return jsonResponse(auth);
+    }
+
+    ensureMaintenanceTriggers_();
+
+    if (payload.type === "ping") {
+      return jsonResponse({ ok: true, type: "ping", version: GAS_VERSION, now: new Date().toISOString() });
+    }
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      var idempotencyKey = payload.idempotencyKey || "";
+      if (idempotencyKey && isKeyProcessed(idempotencyKey)) {
+        return jsonResponse({ ok: true, type: payload.type, id: payload.id, duplicate: true });
+      }
+
+      switch (payload.type) {
+        case "charging":
+        case "snapshot":
+          writeCharging(payload);
+          break;
+        case "patch":
+          patchCharging(payload);
+          break;
+        case "maintenance":
+          writeMaintenance(payload);
+          break;
+        case "inspection":
+          writeInspection(payload);
+          break;
+        case "insurance":
+          writeInsurance(payload);
+          break;
+        case "tax":
+          writeTax(payload);
+          break;
+        case "driveLog":
+          writeDriveLog(payload);
+          break;
+        default:
+          return jsonResponse({ ok: false, error: "unknown type: " + payload.type });
+      }
+
+      if (idempotencyKey) {
+        recordIdempotencyKey(idempotencyKey);
+      }
+
+      return jsonResponse({ ok: true, type: payload.type, id: payload.id });
+    } finally {
+      lock.releaseLock();
+    }
+  } catch (err) {
+    return jsonResponse({ ok: false, error: String(err) });
+  }
+}
+
+function authorizePayload_(payload) {
+  var secret = getSharedToken_();
+  if (!secret) {
+    return { ok: false, error: "shared token is not configured" };
+  }
+  if (!payload.token || String(payload.token) !== String(secret)) {
+    return { ok: false, error: "unauthorized" };
+  }
+  return { ok: true };
+}
+
+function getSharedToken_() {
+  return PropertiesService.getScriptProperties().getProperty(SHARED_TOKEN_PROPERTY) || "";
+}
+
+function setSharedToken(token) {
+  if (!token) {
+    throw new Error("token is required");
+  }
+  PropertiesService.getScriptProperties().setProperty(SHARED_TOKEN_PROPERTY, String(token));
+}
+
+function rotateSharedToken() {
+  var token = "evm_" + Utilities.getUuid().replace(/-/g, "");
+  setSharedToken(token);
+  Logger.log("Shared token rotated. Save this value into VITE_GAS_SHARED_TOKEN or settings.gasSharedToken: " + token);
+  return token;
+}
+
+function clearSharedToken() {
+  PropertiesService.getScriptProperties().deleteProperty(SHARED_TOKEN_PROPERTY);
+}
+
+function ensureMaintenanceTriggers_() {
+  var triggers = ScriptApp.getProjectTriggers();
+  var cleanupTriggers = [];
+
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === CLEANUP_TRIGGER_HANDLER) {
+      cleanupTriggers.push(triggers[i]);
+    }
+  }
+
+  if (cleanupTriggers.length === 0) {
+    ScriptApp.newTrigger(CLEANUP_TRIGGER_HANDLER)
+      .timeBased()
+      .atHour(CLEANUP_TRIGGER_HOUR)
+      .everyDays(1)
+      .inTimezone(Session.getScriptTimeZone())
+      .create();
+    return;
+  }
+
+  for (var j = 1; j < cleanupTriggers.length; j++) {
+    ScriptApp.deleteTrigger(cleanupTriggers[j]);
+  }
+}
+
+function installMaintenanceTriggers() {
+  ensureMaintenanceTriggers_();
+}
+
 function writeCharging(p) {
   var sheet = getOrCreateSheet(CHARGING_SHEET, CHARGING_HEADERS);
-
-  // ID is in column B (index 2)
   if (idExistsInColumn(sheet, 2, p.id)) return;
 
   sheet.appendRow([
-    new Date(),                    // Timestamp
-    p.id,                          // ID
-    p.status || "",                // Status
-    p.startTime || "",             // Start Time
-    p.endTime || "",               // End Time
-    p.location || "",              // Location
-    p.startOdometer || "",         // Start Odo
-    p.startSoC || "",              // Start SoC
-    p.startRange || "",            // Start Range
-    p.startRangeAcOn || "",        // Start Range AC ON
-    p.endSoC || "",                // End SoC
-    p.endRange || "",              // End Range
-    p.endRangeAcOn || "",          // End Range AC ON
-    p.addedKwh || "",              // Added kWh
-    p.cost || "",                  // Cost
-    p.efficiency || "",            // Efficiency
-    "",                            // Duration (mins)
-    p.recordType || "charging",    // Record Type
-    p.fileName || "",              // FileName
-    p.tripMeter || "",             // TripMeter
-    p.acOffRange || "",            // AC_OFF_Range
-    p.chargingState || "",         // ChargingState
-    p.vehicleTime || "",           // VehicleTime
-    p.memo || "",                  // Memo
+    new Date(),
+    p.id,
+    p.status || "",
+    p.startTime || "",
+    p.endTime || "",
+    p.location || "",
+    p.startOdometer || "",
+    p.startSoC || "",
+    p.startRange || "",
+    p.startRangeAcOn || "",
+    p.endSoC || "",
+    p.endRange || "",
+    p.endRangeAcOn || "",
+    p.addedKwh || "",
+    p.cost || "",
+    p.efficiency || "",
+    "",
+    p.recordType || "charging",
+    p.fileName || "",
+    p.tripMeter || "",
+    p.acOffRange || "",
+    p.chargingState || "",
+    p.vehicleTime || "",
+    p.memo || "",
   ]);
 }
 
-/**
- * Patch specific fields on an existing row by ID.
- * Only non-empty fields in the payload are updated.
- */
 function patchCharging(p) {
   var sheet = getOrCreateSheet(CHARGING_SHEET, CHARGING_HEADERS);
   var lastRow = sheet.getLastRow();
@@ -146,7 +205,6 @@ function patchCharging(p) {
   for (var i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(p.id)) {
       var row = i + 2;
-      // Column map: N=14(kWh), I=9(StartRange), J=10(StartRangeAcOn), L=12(EndRange), M=13(EndRangeAcOn), P=16(Efficiency), X=24(Memo)
       if (p.addedKwh) sheet.getRange(row, 14).setValue(p.addedKwh);
       if (p.startRange) sheet.getRange(row, 9).setValue(p.startRange);
       if (p.startRangeAcOn) sheet.getRange(row, 10).setValue(p.startRangeAcOn);
@@ -161,88 +219,58 @@ function patchCharging(p) {
 
 function writeMaintenance(p) {
   var sheet = getOrCreateSheet("maintenance", [
-    "id", "date", "category", "description",
-    "cost", "odometer", "nextDueDate", "memo",
+    "id", "date", "category", "description", "cost", "odometer", "nextDueDate", "memo",
   ]);
-
   if (idExists(sheet, p.id)) return;
-
   sheet.appendRow([
-    p.id, p.date, p.category, p.description,
-    p.cost, p.odometer, p.nextDueDate, p.memo,
+    p.id, p.date, p.category, p.description, p.cost, p.odometer, p.nextDueDate, p.memo,
   ]);
 }
 
 function writeInspection(p) {
   var sheet = getOrCreateSheet("inspection", [
-    "id", "date", "inspectionType", "odometer",
-    "cost", "soh", "nextDueDate", "findings",
+    "id", "date", "inspectionType", "odometer", "cost", "soh", "nextDueDate", "findings",
   ]);
-
   if (idExists(sheet, p.id)) return;
-
   sheet.appendRow([
-    p.id, p.date, p.inspectionType, p.odometer,
-    p.cost, p.soh, p.nextDueDate, p.findings,
+    p.id, p.date, p.inspectionType, p.odometer, p.cost, p.soh, p.nextDueDate, p.findings,
   ]);
 }
 
 function writeInsurance(p) {
   var sheet = getOrCreateSheet("insurance", [
-    "id", "provider", "policyNumber", "insuranceType",
-    "coverageSummary", "premium",
-    "startDate", "endDate", "memo",
+    "id", "provider", "policyNumber", "insuranceType", "coverageSummary", "premium", "startDate", "endDate", "memo",
   ]);
-
   if (idExists(sheet, p.id)) return;
-
   sheet.appendRow([
-    p.id, p.provider, p.policyNumber, p.insuranceType,
-    p.coverageSummary, p.premium,
-    p.startDate, p.endDate, p.memo,
+    p.id, p.provider, p.policyNumber, p.insuranceType, p.coverageSummary, p.premium, p.startDate, p.endDate, p.memo,
   ]);
 }
 
 function writeTax(p) {
   var sheet = getOrCreateSheet("tax", [
-    "id", "taxType", "amount", "dueDate",
-    "paidDate", "fiscalYear", "memo",
+    "id", "taxType", "amount", "dueDate", "paidDate", "fiscalYear", "memo",
   ]);
-
   if (idExists(sheet, p.id)) return;
-
   sheet.appendRow([
-    p.id, p.taxType, p.amount, p.dueDate,
-    p.paidDate, p.fiscalYear, p.memo,
+    p.id, p.taxType, p.amount, p.dueDate, p.paidDate, p.fiscalYear, p.memo,
   ]);
 }
 
 function writeDriveLog(p) {
   var sheet = getOrCreateSheet("driveLog", [
-    "id", "date", "departure", "destination",
-    "distance", "startOdometer", "endOdometer",
-    "efficiency", "purpose", "memo",
+    "id", "date", "departure", "destination", "distance", "startOdometer", "endOdometer", "efficiency", "purpose", "memo",
   ]);
-
   if (idExists(sheet, p.id)) return;
-
   sheet.appendRow([
-    p.id, p.date, p.departure, p.destination,
-    p.distance, p.startOdometer, p.endOdometer,
-    p.efficiency, p.purpose, p.memo,
+    p.id, p.date, p.departure, p.destination, p.distance, p.startOdometer, p.endOdometer, p.efficiency, p.purpose, p.memo,
   ]);
 }
-
-// ---------------------------------------------------------------------------
-// One-time migration: consolidate Raw_Data + ダッシュボード記録 → Charging_Logs
-// Run this manually from the Apps Script editor once.
-// ---------------------------------------------------------------------------
 
 function consolidateSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var target = getOrCreateSheet(CHARGING_SHEET, CHARGING_HEADERS);
 
-  // Ensure header row has all columns (expand if needed)
   var currentHeaders = target.getRange(1, 1, 1, target.getLastColumn()).getValues()[0];
   if (currentHeaders.length < CHARGING_HEADERS.length) {
     var headerRange = target.getRange(1, 1, 1, CHARGING_HEADERS.length);
@@ -252,7 +280,6 @@ function consolidateSheets() {
 
   var addedCount = 0;
 
-  // --- 1. Merge Raw_Data ---
   var rawSheet = ss.getSheetByName("Raw_Data");
   if (rawSheet) {
     var rawData = rawSheet.getDataRange().getValues();
@@ -262,77 +289,71 @@ function consolidateSheets() {
       try {
         var obj = JSON.parse(jsonStr);
         var id = obj.id || ("raw-" + i);
-
         if (!idExistsInColumn(target, 2, id)) {
           target.appendRow([
-            timestamp,         // Timestamp
-            id,                // ID
-            obj.status || "",  // Status
-            obj.startTime || "", // Start Time
-            obj.endTime || "",   // End Time
-            obj.location || "",  // Location
-            "",                  // Start Odo
-            "",                  // Start SoC
-            obj.startRange || "", // Start Range
-            "",                  // Start Range AC ON
-            obj.endSoC || "",    // End SoC
-            obj.endRange || "",  // End Range
-            "",                  // End Range AC ON
-            "",                  // Added kWh
-            obj.cost || "",      // Cost
-            "",                  // Efficiency
-            "",                  // Duration
-            "raw",               // Record Type
+            timestamp,
+            id,
+            obj.status || "",
+            obj.startTime || "",
+            obj.endTime || "",
+            obj.location || "",
+            "",
+            "",
+            obj.startRange || "",
+            "",
+            obj.endSoC || "",
+            obj.endRange || "",
+            "",
+            "",
+            obj.cost || "",
+            "",
+            "",
+            "raw",
           ]);
           addedCount++;
         }
-      } catch (e) {
-        Logger.log("Raw_Data row " + i + " parse error: " + e);
+      } catch (err) {
+        Logger.log("Raw_Data row " + i + " parse error: " + err);
       }
     }
     ss.deleteSheet(rawSheet);
     Logger.log("Raw_Data merged and deleted.");
   }
 
-  // --- 2. Merge ダッシュボード記録 ---
   var dashSheet = ss.getSheetByName("ダッシュボード記録");
   if (dashSheet) {
     var dashData = dashSheet.getDataRange().getValues();
-    // Header: ファイル名(0), 撮影日時(1), データ種別(2), バッテリー残量%(3),
-    //         オドメーター(4), トリップメーター(5), 航続可能距離(6),
-    //         平均電費(7), エアコンOFF追加距離(8), 充電状態(9), 車載時刻(10), 備考(11)
     for (var j = 1; j < dashData.length; j++) {
       var row = dashData[j];
       var fileName = row[0] || "";
       var shotTime = row[1] || "";
       var dashId = "dash-" + fileName.replace(/\.[^.]+$/, "");
-
       if (!idExistsInColumn(target, 2, dashId)) {
         target.appendRow([
-          shotTime,            // Timestamp (撮影日時)
-          dashId,              // ID
-          "",                  // Status
-          "",                  // Start Time
-          "",                  // End Time
-          "",                  // Location
-          row[4] || "",        // Start Odo (オドメーター)
-          row[3] || "",        // Start SoC (バッテリー残量%)
-          row[6] || "",        // Start Range (航続可能距離)
-          "",                  // Start Range AC ON
-          "",                  // End SoC
-          "",                  // End Range
-          "",                  // End Range AC ON
-          "",                  // Added kWh
-          "",                  // Cost
-          row[7] || "",        // Efficiency (平均電費)
-          "",                  // Duration
-          "snapshot",          // Record Type
-          fileName,            // FileName
-          row[5] || "",        // TripMeter
-          row[8] || "",        // AC_OFF_Range
-          row[9] || "",        // ChargingState
-          row[10] || "",       // VehicleTime
-          row[11] || "",       // Memo
+          shotTime,
+          dashId,
+          "",
+          "",
+          "",
+          "",
+          row[4] || "",
+          row[3] || "",
+          row[6] || "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          row[7] || "",
+          "",
+          "snapshot",
+          fileName,
+          row[5] || "",
+          row[8] || "",
+          row[9] || "",
+          row[10] || "",
+          row[11] || "",
         ]);
         addedCount++;
       }
@@ -341,10 +362,9 @@ function consolidateSheets() {
     Logger.log("ダッシュボード記録 merged and deleted.");
   }
 
-  // --- 3. Add Record Type to existing Charging_Logs rows ---
   var lastRow = target.getLastRow();
   if (lastRow > 1) {
-    var typeCol = 18; // Column R = Record Type
+    var typeCol = 18;
     var types = target.getRange(2, typeCol, lastRow - 1, 1).getValues();
     for (var k = 0; k < types.length; k++) {
       if (!types[k][0]) {
@@ -354,24 +374,12 @@ function consolidateSheets() {
   }
 
   Logger.log("Consolidation complete. " + addedCount + " rows added.");
-  SpreadsheetApp.getUi().alert(
-    "統合完了: " + addedCount + " 件追加しました。\n" +
-    "Raw_Data と ダッシュボード記録 は削除されました。"
-  );
+  SpreadsheetApp.getUi().alert("統合完了: " + addedCount + " 件追加しました。Raw_Data と ダッシュボード記録 は削除されました。");
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Returns the sheet with the given name, creating it (with a header row)
- * if it does not yet exist.
- */
 function getOrCreateSheet(name, headers) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(name);
-
   if (!sheet) {
     sheet = ss.insertSheet(name);
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
@@ -379,27 +387,16 @@ function getOrCreateSheet(name, headers) {
     headerRange.setFontWeight("bold");
     sheet.setFrozenRows(1);
   }
-
   return sheet;
 }
 
-/**
- * Returns true when the given id is already present in column A (row 2+).
- */
 function idExists(sheet, id) {
   return idExistsInColumn(sheet, 1, id);
 }
 
-/**
- * Returns true when the given id is already present in the specified column.
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
- * @param {number} col - 1-based column index
- * @param {string} id
- */
 function idExistsInColumn(sheet, col, id) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return false;
-
   var ids = sheet.getRange(2, col, lastRow - 1, 1).getValues();
   for (var i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(id)) return true;
@@ -407,33 +404,23 @@ function idExistsInColumn(sheet, col, id) {
   return false;
 }
 
-/**
- * Returns true if the given idempotency key has been processed before.
- */
 function isKeyProcessed(key) {
   var props = PropertiesService.getScriptProperties();
-  return props.getProperty("idem:" + key) !== null;
+  return props.getProperty(IDEMPOTENCY_PREFIX + key) !== null;
 }
 
-/**
- * Records an idempotency key to prevent duplicate processing.
- */
 function recordIdempotencyKey(key) {
   var props = PropertiesService.getScriptProperties();
-  props.setProperty("idem:" + key, new Date().toISOString());
+  props.setProperty(IDEMPOTENCY_PREFIX + key, new Date().toISOString());
 }
 
-/**
- * Cleanup idempotency keys older than 30 days.
- * Run manually or via a daily time-driven trigger.
- */
 function cleanupOldIdempotencyKeys() {
   var props = PropertiesService.getScriptProperties();
   var all = props.getProperties();
   var cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   var deleted = 0;
   for (var key in all) {
-    if (key.indexOf("idem:") === 0) {
+    if (key.indexOf(IDEMPOTENCY_PREFIX) === 0) {
       var date = new Date(all[key]);
       if (date < cutoff) {
         props.deleteProperty(key);
@@ -444,9 +431,6 @@ function cleanupOldIdempotencyKeys() {
   Logger.log("Cleaned up " + deleted + " old idempotency keys.");
 }
 
-/**
- * Serialises an object as a JSON ContentService response.
- */
 function jsonResponse(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { GasPayload, SyncEnvelope } from "../types/index.ts";
 import { sendToGas } from "../../shared/utils/gas-sync.ts";
+import { useSettingsStore } from "./useSettingsStore.ts";
 
 let _isFlushing = false;
 
@@ -14,7 +15,7 @@ function generateId(): string {
 function createEnvelope(payload: GasPayload): SyncEnvelope {
   return {
     envelopeId: generateId(),
-    idempotencyKey: `${payload.type}-${payload.id}-${Date.now()}`,
+    idempotencyKey: `${payload.type}-${payload.type === "ping" ? "ping" : payload.id}-${Date.now()}`,
     payload,
     status: "pending",
     retryCount: 0,
@@ -24,17 +25,9 @@ function createEnvelope(payload: GasPayload): SyncEnvelope {
 
 interface SyncState {
   outbox: SyncEnvelope[];
-
-  /** Enqueue payload and immediately attempt to send. Returns true on verified ACK. */
   syncSend: (gasUrl: string, payload: GasPayload) => Promise<boolean>;
-
-  /** Retry all pending/failed items in the outbox. */
   flushOutbox: (gasUrl: string) => Promise<{ ackedCount: number; failedCount: number }>;
-
-  /** Import items from the legacy offlineQueue (one-time migration). */
   importLegacyQueue: (items: GasPayload[]) => void;
-
-  /** Clear all items from the outbox. */
   clearOutbox: () => void;
 }
 
@@ -42,39 +35,46 @@ export const useSyncStore = create<SyncState>()(
   persist(
     (set, get) => ({
       outbox: [],
-
       syncSend: async (gasUrl, payload) => {
         const envelope = createEnvelope(payload);
+        const gasToken = useSettingsStore.getState().settings.gasSharedToken;
 
-        // Add to outbox immediately
         set((state) => ({ outbox: [...state.outbox, envelope] }));
-
         if (!gasUrl) return false;
 
-        // Mark as sending
         set((state) => ({
           outbox: state.outbox.map((e) =>
             e.envelopeId === envelope.envelopeId
-              ? { ...e, status: "sending" as const, lastAttemptAt: new Date().toISOString() }
-              : e
+              ? {
+                  ...e,
+                  status: "sending" as const,
+                  lastAttemptAt: new Date().toISOString(),
+                }
+              : e,
           ),
         }));
 
         try {
-          const ok = await sendToGas(gasUrl, payload, envelope.idempotencyKey);
+          const ok = await sendToGas(gasUrl, payload, {
+            idempotencyKey: envelope.idempotencyKey,
+            token: gasToken,
+          });
           if (ok) {
-            // Verified ACK: remove from outbox
             set((state) => ({
               outbox: state.outbox.filter((e) => e.envelopeId !== envelope.envelopeId),
             }));
             return true;
           }
-          // GAS returned error: mark as failed for retry
           set((state) => ({
             outbox: state.outbox.map((e) =>
               e.envelopeId === envelope.envelopeId
-                ? { ...e, status: "failed" as const, lastError: "GAS returned error", retryCount: e.retryCount + 1 }
-                : e
+                ? {
+                    ...e,
+                    status: "failed" as const,
+                    lastError: "GAS returned error",
+                    retryCount: e.retryCount + 1,
+                  }
+                : e,
             ),
           }));
           return false;
@@ -82,26 +82,32 @@ export const useSyncStore = create<SyncState>()(
           set((state) => ({
             outbox: state.outbox.map((e) =>
               e.envelopeId === envelope.envelopeId
-                ? { ...e, status: "failed" as const, lastError: String(err), retryCount: e.retryCount + 1 }
-                : e
+                ? {
+                    ...e,
+                    status: "failed" as const,
+                    lastError: String(err),
+                    retryCount: e.retryCount + 1,
+                  }
+                : e,
             ),
           }));
           return false;
         }
       },
-
       flushOutbox: async (gasUrl) => {
-        if (_isFlushing || !gasUrl) return { ackedCount: 0, failedCount: 0 };
-        _isFlushing = true;
+        if (_isFlushing || !gasUrl) {
+          return { ackedCount: 0, failedCount: 0 };
+        }
 
+        _isFlushing = true;
+        const gasToken = useSettingsStore.getState().settings.gasSharedToken;
         let ackedCount = 0;
         let failedCount = 0;
 
         try {
-          // Reset stuck "sending" items from previous interrupted sessions
           set((state) => ({
             outbox: state.outbox.map((e) =>
-              e.status === "sending" ? { ...e, status: "pending" as const } : e
+              e.status === "sending" ? { ...e, status: "pending" as const } : e,
             ),
           }));
 
@@ -113,13 +119,20 @@ export const useSyncStore = create<SyncState>()(
             set((state) => ({
               outbox: state.outbox.map((e) =>
                 e.envelopeId === envelope.envelopeId
-                  ? { ...e, status: "sending" as const, lastAttemptAt: new Date().toISOString() }
-                  : e
+                  ? {
+                      ...e,
+                      status: "sending" as const,
+                      lastAttemptAt: new Date().toISOString(),
+                    }
+                  : e,
               ),
             }));
 
             try {
-              const ok = await sendToGas(gasUrl, envelope.payload, envelope.idempotencyKey);
+              const ok = await sendToGas(gasUrl, envelope.payload, {
+                idempotencyKey: envelope.idempotencyKey,
+                token: gasToken,
+              });
               if (ok) {
                 set((state) => ({
                   outbox: state.outbox.filter((e) => e.envelopeId !== envelope.envelopeId),
@@ -129,8 +142,13 @@ export const useSyncStore = create<SyncState>()(
                 set((state) => ({
                   outbox: state.outbox.map((e) =>
                     e.envelopeId === envelope.envelopeId
-                      ? { ...e, status: "failed" as const, lastError: "GAS returned error", retryCount: e.retryCount + 1 }
-                      : e
+                      ? {
+                          ...e,
+                          status: "failed" as const,
+                          lastError: "GAS returned error",
+                          retryCount: e.retryCount + 1,
+                        }
+                      : e,
                   ),
                 }));
                 failedCount++;
@@ -139,8 +157,13 @@ export const useSyncStore = create<SyncState>()(
               set((state) => ({
                 outbox: state.outbox.map((e) =>
                   e.envelopeId === envelope.envelopeId
-                    ? { ...e, status: "failed" as const, lastError: String(err), retryCount: e.retryCount + 1 }
-                    : e
+                    ? {
+                        ...e,
+                        status: "failed" as const,
+                        lastError: String(err),
+                        retryCount: e.retryCount + 1,
+                      }
+                    : e,
                 ),
               }));
               failedCount++;
@@ -152,13 +175,11 @@ export const useSyncStore = create<SyncState>()(
 
         return { ackedCount, failedCount };
       },
-
       importLegacyQueue: (items) => {
         if (items.length === 0) return;
         const envelopes = items.map(createEnvelope);
         set((state) => ({ outbox: [...state.outbox, ...envelopes] }));
       },
-
       clearOutbox: () => set({ outbox: [] }),
     }),
     {

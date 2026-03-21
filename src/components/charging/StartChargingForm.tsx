@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { PlugZap, MapPin, ChevronDown, Moon } from "lucide-react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { PlugZap, MapPin, ChevronDown, Moon, Navigation } from "lucide-react";
 import { SmartNumberInput } from "../inputs/SmartNumberInput.tsx";
 import { DateTimeInput } from "../inputs/DateTimeInput.tsx";
 import { Odometer } from "../inputs/Odometer.tsx";
@@ -10,6 +10,7 @@ import { useSettingsStore } from "../../store/useSettingsStore.ts";
 import { useToastStore } from "../../store/useToastStore.ts";
 import { getAutoRate } from "../../utils/calculations.ts";
 import { generateId, getLocalISOString } from "../../utils/formatting.ts";
+import { suggestNearestLocation } from "../../utils/location-suggest.ts";
 import type { MeterExtractResult } from "../../types/index.ts";
 import type { Translations } from "../../i18n/index.ts";
 
@@ -17,31 +18,51 @@ interface StartChargingFormProps {
   t: Translations;
 }
 
+function getMostRecentlyUsedLocationId(
+  locations: Array<{ id: string; lastUsedAt?: string }>,
+): string | undefined {
+  return [...locations]
+    .filter((loc) => !!loc.lastUsedAt)
+    .sort((a, b) => (b.lastUsedAt ?? "").localeCompare(a.lastUsedAt ?? ""))[0]?.id;
+}
+
 export function StartChargingForm({ t }: StartChargingFormProps) {
   const history = useChargingStore((s) => s.history);
   const startSession = useChargingStore((s) => s.startSession);
   const locations = useLocationStore((s) => s.locations);
+  const markLocationUsed = useLocationStore((s) => s.markLocationUsed);
   const settings = useSettingsStore((s) => s.settings);
-
   const showToast = useToastStore((s) => s.showToast);
-  const geminiApiKey = settings.geminiApiKey ?? "";
 
+  const geminiApiKey = settings.geminiApiKey ?? "";
   const lastRecord = history[0];
+
   const [startTime, setStartTime] = useState(getLocalISOString());
   const [odometer, setOdometer] = useState(lastRecord?.odometer ?? 10000);
-  const [startBattery, setStartBattery] = useState(
-    lastRecord?.endBattery ?? 50,
-  );
+  const [startBattery, setStartBattery] = useState(lastRecord?.endBattery ?? 50);
   const [startRange, setStartRange] = useState(lastRecord?.endRange ?? 200);
   const [efficiency, setEfficiency] = useState(lastRecord?.efficiency ?? 6.0);
   const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [startRangeAcOn, setStartRangeAcOn] = useState<number | undefined>(undefined);
+  const [startSegmentCount, setStartSegmentCount] = useState<number | undefined>(undefined);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationHint, setLocationHint] = useState("");
 
-  // Fix 1: determine if night rate applies based on the selected start time
+  const geocodedLocations = useMemo(
+    () =>
+      locations.filter(
+        (loc) => typeof loc.lat === "number" && typeof loc.lng === "number",
+      ),
+    [locations],
+  );
+  const lastUsedLocationId = useMemo(
+    () => getMostRecentlyUsedLocationId(locations),
+    [locations],
+  );
+
   const appliedRate = getAutoRate(settings, startTime);
-  const isNightRate =
-    settings.useNightRate && appliedRate === settings.nightRate;
+  const isNightRate = settings.useNightRate && appliedRate === settings.nightRate;
 
-  // Fix 3: recalculate efficiency when odometer changes
   const handleOdometerChange = useCallback(
     (newOdometer: number) => {
       setOdometer(newOdometer);
@@ -60,9 +81,6 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
     [lastRecord],
   );
 
-  const [startRangeAcOn, setStartRangeAcOn] = useState<number | undefined>(undefined);
-  const [startSegmentCount, setStartSegmentCount] = useState<number | undefined>(undefined);
-
   const handleMeterApply = useCallback(
     (data: MeterExtractResult) => {
       if (data.odometer != null) handleOdometerChange(data.odometer);
@@ -77,8 +95,97 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
     [handleOdometerChange, showToast, t.meterApplied],
   );
 
+  const requestLocationSuggestion = useCallback(
+    async (userInitiated: boolean) => {
+      if (geocodedLocations.length === 0) {
+        if (userInitiated) showToast(t.locationNoCoordinates, "info");
+        return;
+      }
+
+      if (!("geolocation" in navigator)) {
+        if (userInitiated) showToast(t.locationPermissionDenied, "info");
+        return;
+      }
+
+      setIsLocating(true);
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 5 * 60 * 1000,
+          });
+        });
+
+        const { selectedId, candidates } = suggestNearestLocation(
+          {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          },
+          locations,
+          lastUsedLocationId,
+        );
+
+        const nearest = candidates[0];
+        if (selectedId) {
+          setSelectedLocationId(selectedId);
+        }
+
+        if (nearest) {
+          const nearestName = locations.find((loc) => loc.id === nearest.locationId)?.name ?? "";
+          setLocationHint(
+            `${t.locationSuggested}: ${nearestName} ${nearest.distanceMeters}m (±${nearest.accuracyMeters}m)`,
+          );
+        }
+
+        if (userInitiated) {
+          showToast(
+            selectedId && nearest?.autoSelected
+              ? t.locationAutoSelected
+              : t.locationSuggested,
+            "success",
+          );
+        }
+      } catch {
+        if (userInitiated) {
+          showToast(t.locationPermissionDenied, "info");
+        }
+      } finally {
+        setIsLocating(false);
+      }
+    },
+    [geocodedLocations.length, lastUsedLocationId, locations, showToast, t],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function maybeSuggestOnLoad() {
+      if (geocodedLocations.length === 0 || !("permissions" in navigator)) return;
+      try {
+        const status = await navigator.permissions.query({
+          name: "geolocation" as PermissionName,
+        });
+        if (!cancelled && status.state === "granted") {
+          requestLocationSuggestion(false);
+        }
+      } catch {
+        // Safari may not fully support Permissions API for geolocation; ignore.
+      }
+    }
+
+    maybeSuggestOnLoad();
+    return () => {
+      cancelled = true;
+    };
+  }, [geocodedLocations.length, requestLocationSuggestion]);
+
   const handleStart = () => {
     const loc = locations.find((l) => l.id === selectedLocationId);
+    if (selectedLocationId) {
+      markLocationUsed(selectedLocationId);
+    }
     startSession({
       id: generateId(),
       startTime,
@@ -163,11 +270,22 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
         onChange={setEfficiency}
       />
 
-      {/* Location Selector */}
       <div className="mb-2">
-        <label className="text-text-muted text-xs font-medium uppercase tracking-wider pl-1 flex items-center gap-1">
-          <MapPin size={12} /> {t.chargingLocation}
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-text-muted text-xs font-medium uppercase tracking-wider pl-1 flex items-center gap-1">
+            <MapPin size={12} /> {t.chargingLocation}
+          </label>
+          <button
+            type="button"
+            onClick={() => requestLocationSuggestion(true)}
+            disabled={isLocating || geocodedLocations.length === 0}
+            className="text-[10px] px-2 py-1 rounded-lg border border-border-subtle text-nexus-cyan disabled:text-text-dim disabled:border-border-subtle/40 hover:border-border-glow transition-all"
+          >
+            <span className="inline-flex items-center gap-1">
+              <Navigation size={12} /> {isLocating ? "GPS..." : t.useCurrentLocation}
+            </span>
+          </button>
+        </div>
         <div className="relative mt-1">
           <select
             value={selectedLocationId}
@@ -185,6 +303,9 @@ export function StartChargingForm({ t }: StartChargingFormProps) {
             <ChevronDown size={16} />
           </div>
         </div>
+        {locationHint && (
+          <div className="mt-1 pl-1 text-[10px] text-text-dim tracking-wide">{locationHint}</div>
+        )}
       </div>
 
       <button

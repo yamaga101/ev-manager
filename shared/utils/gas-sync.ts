@@ -1,6 +1,7 @@
 import type {
   ChargingRecord,
   GasPayload,
+  GasRequestOptions,
   MaintenanceRecord,
   InspectionRecord,
   InsuranceRecord,
@@ -104,21 +105,24 @@ export function buildDriveLogGasPayload(record: DriveLogRecord): GasPayload {
 export async function sendToGas(
   gasUrl: string,
   payload: GasPayload,
-  idempotencyKey?: string,
+  options: GasRequestOptions = {},
 ): Promise<boolean> {
-  // Enforce HTTPS for security
   if (!gasUrl.startsWith("https://")) {
     throw new Error("GAS URL must use HTTPS protocol");
   }
 
-  const body = idempotencyKey
-    ? { ...payload, idempotencyKey }
-    : payload;
+  const body = {
+    ...payload,
+    ...(options.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : {}),
+    ...(options.token ? { token: options.token } : {}),
+  };
 
   try {
     const response = await fetch(gasUrl, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8",
+      },
       body: JSON.stringify(body),
     });
     const result = await response.json();
@@ -128,11 +132,18 @@ export async function sendToGas(
   }
 }
 
-// isOnline is passed as a parameter so this works on both Web and Mobile
+export async function pingGas(
+  gasUrl: string,
+  token?: string,
+): Promise<boolean> {
+  return sendToGas(gasUrl, { type: "ping" }, { token });
+}
+
 export async function retryQueue(
   gasUrl: string,
   queue: GasPayload[],
   isOnline: boolean,
+  token?: string,
 ): Promise<{ remaining: GasPayload[]; sentCount: number }> {
   if (queue.length === 0 || !isOnline || !gasUrl) {
     return { remaining: queue, sentCount: 0 };
@@ -140,7 +151,7 @@ export async function retryQueue(
 
   const remaining: GasPayload[] = [];
   for (const item of queue) {
-    const success = await sendToGas(gasUrl, item);
+    const success = await sendToGas(gasUrl, item, { token });
     if (!success) {
       remaining.push(item);
     }

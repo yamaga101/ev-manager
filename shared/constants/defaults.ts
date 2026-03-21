@@ -1,13 +1,8 @@
-export const APP_VERSION = "4.5.9";
-
-export const PRE_CONFIGURED_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwtU2yzzRnHLkiI1ebAJ1bDCvq0K6_v7Yi94A1Xm13mEzq0KzGIHr512FzV1O53k0wcRA/exec";
-
-export const DEFAULT_GEMINI_API_KEY =
-  import.meta.env.VITE_GEMINI_API_KEY ?? "";
-
-export const SPREADSHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1Cvn4oUoN7lsd5VW0MufgwSwrdNC-LE9VbPwZ2eG0cvA";
+export const APP_VERSION = "4.6.0";
+export const PRE_CONFIGURED_GAS_URL = "https://script.google.com/macros/s/AKfycbwtU2yzzRnHLkiI1ebAJ1bDCvq0K6_v7Yi94A1Xm13mEzq0KzGIHr512FzV1O53k0wcRA/exec";
+export const DEFAULT_GAS_SHARED_TOKEN = import.meta.env.VITE_GAS_SHARED_TOKEN ?? "";
+export const DEFAULT_GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
+export const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1Cvn4oUoN7lsd5VW0MufgwSwrdNC-LE9VbPwZ2eG0cvA";
 
 export const STORAGE_KEY_DATA = "ev_gravity_data_v1";
 export const STORAGE_KEY_SETTINGS = "ev_gravity_settings_v1";
