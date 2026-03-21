@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BatteryCharging, MapPin } from "lucide-react";
+import { MeterCaptureFlow } from "../meter-capture/MeterCaptureFlow.tsx";
 import { ProgressRing } from "../ui/ProgressRing.tsx";
 import { SmartNumberInput } from "../inputs/SmartNumberInput.tsx";
 import { DateTimeInput } from "../inputs/DateTimeInput.tsx";
@@ -26,7 +27,7 @@ import {
 } from "../../constants/defaults.ts";
 import type { Translations } from "../../i18n/index.ts";
 import { useScramble } from "../../hooks/useScramble.ts";
-import type { ChargingRecord } from "../../types/index.ts";
+import type { ChargingRecord, MeterExtractResult } from "../../types/index.ts";
 
 interface LiveChargingScreenProps {
   t: Translations;
@@ -40,6 +41,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
   const addToQueue = useChargingStore((s) => s.addToQueue);
   const settings = useSettingsStore((s) => s.settings);
   const showToast = useToastStore((s) => s.showToast);
+  const geminiApiKey = settings.geminiApiKey ?? "";
 
   const [elapsed, setElapsed] = useState(0);
   const [endTime, setEndTime] = useState(getLocalISOString());
@@ -168,6 +170,17 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
     }
   };
 
+  const handleMeterApply = useCallback(
+    (data: MeterExtractResult) => {
+      if (data.batteryPct != null) setEndBattery(data.batteryPct);
+      if (data.rangeKm != null) setEndRange(data.rangeKm);
+      if (data.rangeAcOnKm != null) setEndRangeAcOn(data.rangeAcOnKm);
+      if (data.capturedAt) setEndTime(data.capturedAt);
+      showToast(t.meterApplied, "success");
+    },
+    [showToast, t.meterApplied],
+  );
+
   return (
     <div className="charging-pulse glass-panel glass-noise hud-corners scan-lines prismatic-border scan-sweep p-4 slide-up">
       <div className="flex justify-between items-start mb-4">
@@ -177,12 +190,17 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
             {t.charging}
           </h2>
         </div>
-        <button
-          onClick={handleCancel}
-          className="text-[10px] text-text-dim hover:text-nexus-error tracking-wider uppercase transition-colors"
-        >
-          {t.cancel}
-        </button>
+        <div className="flex items-center gap-2">
+          {geminiApiKey && (
+            <MeterCaptureFlow apiKey={geminiApiKey} t={t} onApply={handleMeterApply} />
+          )}
+          <button
+            onClick={handleCancel}
+            className="text-[10px] text-text-dim hover:text-nexus-error tracking-wider uppercase transition-colors"
+          >
+            {t.cancel}
+          </button>
+        </div>
       </div>
 
       {/* Progress Ring + Timer */}
