@@ -47,6 +47,9 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
     Math.min(session.startBattery + 20, 100),
   );
   const [endRange, setEndRange] = useState(session.startRange + 50);
+  const [endRangeAcOn, setEndRangeAcOn] = useState<number | undefined>(
+    session.startRangeAcOn != null ? session.startRangeAcOn + 30 : undefined,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, boolean>
@@ -129,6 +132,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       endTime,
       endBattery,
       endRange,
+      endRangeAcOn,
       chargedKwh: parseFloat(chargedKwh.toFixed(1)),
       cost,
       duration: Math.round(duration),
@@ -223,7 +227,7 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
       <div className="rounded-lg p-2 mb-4 text-xs bg-space-glass border border-border-subtle">
         <div className="flex justify-between text-text-dim font-mono-data text-[11px]">
           <span>{formatDate(session.startTime)}</span>
-          <span>{session.startBattery}% / {session.startRange}km</span>
+          <span>{session.startBattery}% / {session.startRange}km{session.startRangeAcOn != null ? ` (AC ON: ${session.startRangeAcOn}km)` : ""}</span>
         </div>
         {session.locationName && (
           <div className="text-nexus-cyan/70 mt-1 flex items-center gap-1 text-[11px]">
@@ -259,6 +263,17 @@ export function LiveChargingScreen({ t, onComplete }: LiveChargingScreenProps) {
           onChange={setEndRange}
           error={validationErrors.endRange}
         />
+        {(session.startRangeAcOn != null || endRangeAcOn != null) && (
+          <SmartNumberInput
+            label={t.rangeAcOn}
+            value={endRangeAcOn ?? 0}
+            unit="km"
+            steps={[-10, -1, 1, 10]}
+            min={0}
+            max={1000}
+            onChange={(v) => setEndRangeAcOn(v || undefined)}
+          />
+        )}
       </div>
 
       <button

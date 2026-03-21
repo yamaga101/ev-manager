@@ -26,6 +26,7 @@ export interface ChargingRecord extends ChargingSession {
   endTime: string;
   endBattery: number;
   endRange: number;
+  endRangeAcOn?: number;
   chargedKwh: number;
   cost: number;
   duration: number;
@@ -82,6 +83,8 @@ export interface ChargingGasPayload {
   location: string;
   addedKwh: string;
   cost: string;
+  startRangeAcOn?: string;
+  endRangeAcOn?: string;
 }
 
 export interface MaintenanceGasPayload {

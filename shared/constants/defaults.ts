@@ -1,4 +1,4 @@
-export const APP_VERSION = "4.5.4";
+export const APP_VERSION = "4.5.5";
 
 export const PRE_CONFIGURED_GAS_URL =
   "https://script.google.com/macros/s/AKfycbwtU2yzzRnHLkiI1ebAJ1bDCvq0K6_v7Yi94A1Xm13mEzq0KzGIHr512FzV1O53k0wcRA/exec";
@@ -45,6 +45,8 @@ export const CSV_HEADERS = {
     "Charge Speed (kW)",
     "Efficiency",
     "Location",
+    "Start Range AC ON",
+    "End Range AC ON",
   ],
   ja: [
     "日時",
@@ -61,5 +63,7 @@ export const CSV_HEADERS = {
     "充電速度(kW)",
     "電費",
     "場所",
+    "開始航続AC ON",
+    "終了航続AC ON",
   ],
 } as const;

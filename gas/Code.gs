@@ -5,7 +5,7 @@
  * corresponding sheet in the active spreadsheet.
  *
  * Sheet layout per type:
- *   Charging_Logs : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | End SoC | End Range | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo
+ *   Charging_Logs : Timestamp | ID | Status | Start Time | End Time | Location | Start Odo | Start SoC | Start Range | End SoC | End Range | Added kWh | Cost | Efficiency | Duration (mins) | Record Type | FileName | TripMeter | AC_OFF_Range | ChargingState | VehicleTime | Memo | Start Range AC ON | End Range AC ON
  *   maintenance   : id | date | category | description | cost | odometer | nextDueDate | memo
  *   inspection    : id | date | inspectionType | odometer | cost | soh | nextDueDate | findings
  *   insurance     : id | provider | policyNumber | insuranceType | coverageSummary | premium | startDate | endDate | memo
@@ -17,7 +17,7 @@
  * Deploy as: "Execute as Me" + "Anyone can access" (no sign-in required)
  */
 
-var GAS_VERSION = "4.5.4";
+var GAS_VERSION = "4.5.5";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -81,6 +81,7 @@ var CHARGING_HEADERS = [
   "Efficiency", "Duration (mins)", "Record Type",
   "FileName", "TripMeter", "AC_OFF_Range",
   "ChargingState", "VehicleTime", "Memo",
+  "Start Range AC ON", "End Range AC ON",
 ];
 
 function writeCharging(p) {
@@ -112,6 +113,8 @@ function writeCharging(p) {
     p.chargingState || "",         // ChargingState
     p.vehicleTime || "",           // VehicleTime
     p.memo || "",                  // Memo
+    p.startRangeAcOn || "",        // Start Range AC ON
+    p.endRangeAcOn || "",          // End Range AC ON
   ]);
 }
 

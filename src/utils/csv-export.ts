@@ -42,6 +42,8 @@ export function exportCSV(
       speed.toFixed(1),
       h.efficiency || "",
       h.locationName || "",
+      h.startRangeAcOn ?? "",
+      h.endRangeAcOn ?? "",
     ]
       .map((v) => `"${v}"`)
       .join(",");

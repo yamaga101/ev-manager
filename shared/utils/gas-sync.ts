@@ -24,6 +24,8 @@ export function buildGasPayload(record: ChargingRecord): GasPayload {
     location: String(record.locationName || ""),
     addedKwh: String(record.chargedKwh || ""),
     cost: String(record.cost || ""),
+    startRangeAcOn: String(record.startRangeAcOn ?? ""),
+    endRangeAcOn: String(record.endRangeAcOn ?? ""),
   };
 }
 
