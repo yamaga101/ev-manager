@@ -23,7 +23,10 @@
         "backgroundColor": "#10B981"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.evgravity.logger"
+      "package": "com.evgravity.logger",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -40,6 +43,9 @@
         "projectId": "49ef124c-9d7b-4608-863f-4caded30f839"
       }
     },
-    "owner": "yamaga101"
+    "owner": "yamaga101",
+    "updates": {
+      "url": "https://u.expo.dev/49ef124c-9d7b-4608-863f-4caded30f839"
+    }
   }
 }

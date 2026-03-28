@@ -1,7 +1,9 @@
-export const APP_VERSION = "4.6.0";
+import { ENV_GAS_SHARED_TOKEN, ENV_GEMINI_API_KEY } from "./env";
+
+export const APP_VERSION = "4.6.1";
 export const PRE_CONFIGURED_GAS_URL = "https://script.google.com/macros/s/AKfycbzYA6DhPriFlieCqh3NTS8g08bO-S_XeMF7SIUKCeT1w43RSYwhvNaXg7hDJPUbG-PUKg/exec";
-export const DEFAULT_GAS_SHARED_TOKEN = import.meta.env.VITE_GAS_SHARED_TOKEN ?? "";
-export const DEFAULT_GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
+export const DEFAULT_GAS_SHARED_TOKEN = ENV_GAS_SHARED_TOKEN;
+export const DEFAULT_GEMINI_API_KEY = ENV_GEMINI_API_KEY;
 export const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1Cvn4oUoN7lsd5VW0MufgwSwrdNC-LE9VbPwZ2eG0cvA";
 
 export const STORAGE_KEY_DATA = "ev_gravity_data_v1";
