@@ -19,6 +19,7 @@
  */
 
 var GAS_VERSION = "4.6.0";
+var SPREADSHEET_ID = "1Cvn4oUoN7lsd5VW0MufgwSwrdNC-LE9VbPwZ2eG0cvA";
 var SHARED_TOKEN_PROPERTY = "EV_MANAGER_SHARED_TOKEN";
 var IDEMPOTENCY_PREFIX = "idem:";
 var CLEANUP_TRIGGER_HANDLER = "cleanupOldIdempotencyKeys";
@@ -268,7 +269,7 @@ function writeDriveLog(p) {
 }
 
 function consolidateSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var target = getOrCreateSheet(CHARGING_SHEET, CHARGING_HEADERS);
 
   var currentHeaders = target.getRange(1, 1, 1, target.getLastColumn()).getValues()[0];
@@ -374,11 +375,11 @@ function consolidateSheets() {
   }
 
   Logger.log("Consolidation complete. " + addedCount + " rows added.");
-  SpreadsheetApp.getUi().alert("統合完了: " + addedCount + " 件追加しました。Raw_Data と ダッシュボード記録 は削除されました。");
+  Logger.log("統合完了: " + addedCount + " 件追加しました。Raw_Data と ダッシュボード記録 は削除されました。");
 }
 
 function getOrCreateSheet(name, headers) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(name);
   if (!sheet) {
     sheet = ss.insertSheet(name);
